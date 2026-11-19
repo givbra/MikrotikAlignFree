@@ -1,0 +1,50 @@
+# Безплатно изграждане на .exe и инсталатор в GitHub Actions (Windows).
+# Стартира се при качване на mikrotikalignfree.py в main, при таг v* или ръчно (Actions -> Run workflow).
+name: build-installer
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ["mikrotikalignfree.py", "build/**", ".github/workflows/build-installer.yml"]
+    tags: ["v*"]
+permissions:
+  contents: write
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.8"
+          architecture: x86
+      - name: Инсталиране на PyInstaller
+        run: python -m pip install "pyinstaller==5.13.2"
+      - name: Изграждане на програмата
+        run: pyinstaller --noconfirm --clean --onedir --noconsole --name MikrotikAlignFree --distpath dist --workpath build/work --specpath build/work mikrotikalignfree.py
+      - name: Проверка, че програмата стартира
+        shell: pwsh
+        run: |
+          $p = Start-Process -FilePath "dist\MikrotikAlignFree\MikrotikAlignFree.exe" -ArgumentList "--no-browser","--port","18099" -PassThru
+          Start-Sleep -Seconds 6
+          $r = Invoke-RestMethod -Uri "http://127.0.0.1:18099/api/declination?lat=41.84&lon=23.09"
+          Write-Host ("Declination: " + $r.declination)
+          Stop-Process -Id $p.Id -Force
+      - name: Inno Setup
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "C:\Program Files (x86)\Inno Setup 6\ISCC.exe")) { choco install innosetup -y --no-progress }
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" build\mikrotikalignfree.iss
+      - name: Преносима версия (zip)
+        shell: pwsh
+        run: Compress-Archive -Path dist\MikrotikAlignFree -DestinationPath installer\MikrotikAlignFree-portable.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MikrotikAlignFree-Setup
+          path: installer/*
+      - name: Издание (release) при таг
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${{ github.ref_name }}" installer/* --title "MikrotikAlignFree ${{ github.ref_name }}" --generate-notes

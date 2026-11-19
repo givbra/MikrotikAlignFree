@@ -221,3 +221,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# MikrotikAlignFree
+!/build/
+/build/work/
+/installer/
+mikrotikalignfree_config.json

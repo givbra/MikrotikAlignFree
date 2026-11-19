@@ -1,0 +1,932 @@
+<!doctype html>
+<html lang="__LANG__"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MikrotikAlignFree</title>
+<link rel="stylesheet" href="/static/leaflet.css">
+<style>
+:root{--bg:#f3f4f6;--sf:#fff;--sf2:#eceff3;--tx:#13161b;--mu:#5a6371;--bd:#d5d9e0;--ac:#1f6feb;--g:#12823a;--y:#a86b00;--o:#c2410c;--r:#c42b2b;--info:#e6efff;--warn:#fff1dc;--err:#fde8e8;color-scheme:light}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0e1115;--sf:#161a20;--sf2:#1e242c;--tx:#e9ecf1;--mu:#98a2b2;--bd:#2b323c;--ac:#5aa2ff;--g:#3ccb67;--y:#f2b632;--o:#ff8f52;--r:#ff5d5d;--info:#13253f;--warn:#3a2a10;--err:#3d1717;color-scheme:dark}}
+:root[data-theme=dark]{--bg:#0e1115;--sf:#161a20;--sf2:#1e242c;--tx:#e9ecf1;--mu:#98a2b2;--bd:#2b323c;--ac:#5aa2ff;--g:#3ccb67;--y:#f2b632;--o:#ff8f52;--r:#ff5d5d;--info:#13253f;--warn:#3a2a10;--err:#3d1717;color-scheme:dark}
+*{box-sizing:border-box}html,body{margin:0}body{background:var(--bg);color:var(--tx);font:15px/1.5 system-ui,Segoe UI,Arial,sans-serif}
+header{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;padding:10px 16px;background:var(--sf);border-bottom:1px solid var(--bd);position:sticky;top:0;z-index:500}
+h1{font-size:18px;margin:0 8px 0 0}.sp{flex:1}
+.btn,nav button,.seg button{background:var(--sf2);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:6px 12px;cursor:pointer;font:inherit}
+.btn:hover,nav button:hover,.seg button:hover{border-color:var(--ac)}
+.btn.pri,nav button.on,.seg button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.btn.dng{border-color:var(--r);color:var(--r)}.btn:disabled{opacity:.5;cursor:default}
+nav{display:flex;flex-wrap:wrap;gap:6px;background:var(--sf2);padding:4px;border-radius:12px}nav button{border-color:transparent;background:transparent}
+.seg{display:inline-flex}.seg button{border-radius:0}.seg button:first-child{border-radius:8px 0 0 8px}.seg button:last-child{border-radius:0 8px 8px 0}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 16px;background:var(--bg)}
+.toolbar select{width:auto}
+main{max-width:1120px;margin:0 auto;padding:14px 16px 60px}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:16px;margin-bottom:14px}
+.card h3{margin:0 0 6px;font-size:16px}.card h4{margin:12px 0 4px;font-size:14px}
+.pill{font-size:13px;border:1px solid var(--bd);border-radius:999px;padding:2px 10px;color:var(--mu);background:var(--sf)}
+.pill.ok{color:var(--g);border-color:var(--g)}.pill.bad{color:var(--r);border-color:var(--r)}.pill.warn{color:var(--y);border-color:var(--y)}
+.big{font-size:88px;font-weight:700;line-height:1;text-align:center;margin:4px 0}
+.mid{font-size:40px;font-weight:700;line-height:1.1}.note{font-size:13px;color:var(--mu)}.hide{display:none!important}
+.bar{height:18px;border-radius:9px;background:var(--bd);overflow:hidden}.bar i{display:block;height:100%;width:0;background:var(--g);transition:width .25s}
+.row{display:flex;flex-wrap:wrap;gap:6px 18px;justify-content:space-between;margin-top:10px;color:var(--mu)}.row b{color:var(--tx)}
+label{display:block;font-size:13px;color:var(--mu);margin:8px 0 3px}
+input,select,textarea{width:100%;padding:7px 9px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit}
+input[type=checkbox],input[type=radio]{width:auto}textarea{font:13px/1.4 Consolas,monospace;min-height:110px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:820px){.grid2{grid-template-columns:1fr}.big{font-size:64px}}
+.two{display:flex;gap:12px;flex-wrap:wrap}.two>div{flex:1;min-width:190px;text-align:center}
+table{width:100%;border-collapse:collapse}td,th{padding:6px 8px;border-bottom:1px solid var(--bd);text-align:left;vertical-align:top}th{color:var(--mu);font-weight:500}
+canvas{width:100%;background:var(--bg);border:1px solid var(--bd);border-radius:8px;display:block}
+.banner{border-radius:12px;padding:14px 16px;margin-bottom:14px;border:1px solid var(--bd);background:var(--info)}
+.banner.warn{background:var(--warn)}.banner.err{background:var(--err)}
+.banner ol,.banner ul{margin:6px 0 6px 20px;padding:0}
+#map{height:430px;border-radius:10px;border:1px solid var(--bd)}
+.pin{width:28px;height:28px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;border:2px solid #fff;box-shadow:0 1px 4px #0006}
+.pin span{transform:rotate(45deg)}
+.chat{max-height:170px;overflow:auto;background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:6px 10px;margin:8px 0}
+.chat div{padding:2px 0}.chat .me{color:var(--ac)}
+.tag{display:inline-block;font-size:12px;border-radius:6px;padding:1px 7px;background:var(--sf2);border:1px solid var(--bd);color:var(--mu)}
+details{border:1px solid var(--bd);border-radius:10px;margin:8px 0;background:var(--sf)}summary{cursor:pointer;padding:10px 14px;font-weight:600}
+details>div{padding:0 16px 12px}details li{margin:4px 0}
+code,kbd{background:var(--sf2);border:1px solid var(--bd);border-radius:5px;padding:0 5px;font:13px Consolas,monospace}
+.ok{color:var(--g)}.badc{color:var(--r)}.chips{display:flex;flex-wrap:wrap;gap:6px}
+#tip{position:fixed;pointer-events:none;background:#000d;color:#fff;font-size:12px;padding:4px 8px;border-radius:6px;z-index:900}
+
+.sumbar{display:flex;flex-wrap:wrap;gap:6px 20px;align-items:center;background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:8px 14px;margin-bottom:12px}
+.sumbar b{font-size:17px}.sumbar .note{margin-right:-12px}
+.pan h4{margin:0 0 6px;letter-spacing:.06em;font-size:13px}.pan.l{border-top:3px solid var(--ac)}.pan.r{border-top:3px solid var(--o)}
+.alert{border-radius:8px;padding:8px 12px;background:var(--info);margin:6px 0;font-size:14px}.alert.err{background:var(--err)}
+.sigrow{display:flex;align-items:flex-end;gap:8px;margin:6px 0}.sigrow .peakd{margin-left:auto;text-align:right}.sigrow .peakd b{font-size:24px}
+.big2{font-size:68px;font-weight:700;line-height:1}.unit{font-size:20px;color:var(--mu);margin-bottom:6px}
+.kv{display:flex;justify-content:space-between;gap:10px;padding:3px 0;border-bottom:1px dashed var(--bd);font-size:14px}.kv span{color:var(--mu)}
+pre.cmd{background:var(--sf2);border:1px solid var(--bd);border-radius:8px;padding:8px 10px;font:12.5px/1.45 Consolas,monospace;white-space:pre-wrap;word-break:break-all;margin:6px 0}
+.step{display:inline-flex;width:24px;height:24px;border-radius:50%;background:var(--ac);color:#fff;align-items:center;justify-content:center;font-size:13px;margin-right:8px}
+footer{text-align:center;color:var(--mu);font-size:12px;padding:20px}
+@media print{header,.toolbar,nav{display:none}}
+</style></head><body>
+<header>
+ <h1>MikrotikAlignFree</h1>
+ <nav id="nav">
+  <button data-t="aim" class="on">Насочване</button><button data-t="plan">План и карта</button>
+  <button data-t="setup">Настройка на антената</button><button data-t="report">Отчет</button>
+  <button data-t="guide">Инструкции</button>
+ </nav>
+ <span id="conn" class="pill">...</span><span id="far-pill" class="pill hide"></span><span id="room-chip" class="pill hide"></span>
+ <span id="net-pill" class="pill hide"></span><span id="mq-pill" class="pill hide"></span>
+ <span class="sp"></span>
+ <button class="btn" id="b-lang" title="Language / Език">🌐 <b id="b-lang-t"></b></button>
+ <button class="btn" id="b-theme" title="Тема: автоматична / тъмна / светла">◐</button>
+ <button class="btn" data-t="set" id="b-set">Настройки</button>
+ <button class="btn" id="b-quit" title="Спира програмата">Изход</button>
+</header>
+<div class="toolbar" id="toolbar">
+ <span class="note">Този лаптоп е при:</span>
+ <span class="seg" id="side-seg"><button data-s="a" class="on" title="Вие сте при точка A">А</button><button data-s="b" title="Вие сте при точка B">Б</button></span>
+ <button class="btn" id="b-aim" title="Казва на другия компютър да не пипа антената, докато насочвате">Аз насочвам</button>
+ <button class="btn" id="b-sound" title="Превключва: изключен / тон / говор (клавиш M)">Звук: изкл.</button>
+ <select id="mode" title="По кой сигнал се води индикацията"><option value="mine">по моя сигнал</option><option value="remote">по сигнала на другата страна</option><option value="min">по по-слабия от двата</option></select>
+ <button class="btn" id="b-peak" title="Нулира пика (клавиш P)">Нулирай пик</button>
+ <button class="btn" id="b-rec" title="Записва сигнала всяка секунда за CSV">Запис: изкл.</button>
+ <button class="btn" id="b-point" title="Запазва текущата стойност като точка за отчета (клавиш S)">Запази точка</button>
+ <button class="btn" id="b-help" title="Отваря инструкциите">Помощ</button>
+</div>
+<main>
+
+<!-- ====================== НАСОЧВАНЕ ====================== -->
+<section id="t-aim">
+ <div class="sumbar hide" id="sumbar"></div>
+ <div class="banner warn hide" id="cb">
+  <div id="cb-main"></div>
+  <div id="cb-login" class="hide" style="gap:8px;flex-wrap:wrap;margin:8px 0"><input id="cb-user" style="width:170px" placeholder="потребител" value="admin"><input id="cb-pass" type="password" style="width:210px" placeholder="парола"><button class="btn pri" id="cb-go">Свържи</button></div>
+  <div id="cb-neigh" style="margin:8px 0"></div>
+  <ol id="cb-steps" class="note"><li>Компютърът трябва да е в същата мрежа като антената. Помощник за мрежата има в „Настройка на антената“.</li><li>В RouterOS трябва да е включена API услугата (порт 8728): <code>/ip service enable api</code></li><li>Отделен потребител само с права <code>read, api, test</code> създава „Настройка на антената → Допълнително“.</li></ol>
+  <button class="btn pri" id="ob-set">Към настройките</button> <button class="btn" id="ob-scan">Търси по IP адреси</button>
+  <button class="btn hide" id="cb-auto">Настрой лаптопа автоматично</button>
+  <button class="btn" id="ob-demo">Пробвай в демо режим</button> <button class="btn" id="ob-guide">Инструкции</button>
+  <div id="ob-found" class="note" style="margin-top:8px"></div>
+ </div>
+ <div class="banner err hide" id="aimwarn"><b>Другата страна насочва в момента - не пипайте антената!</b></div>
+ <div class="banner hide" id="planin"></div>
+
+ <div class="grid2">
+  <div class="card pan l"><h4 style="color:var(--ac)">ТУК</h4><div class="alert hide" id="l-alert"></div>
+   <div class="sigrow"><div class="big2" id="l-sig">--</div><span class="unit">dBm</span><div class="peakd"><b id="l-dpk">--</b><div class="note">dB от пика</div></div></div>
+   <div class="bar"><i id="l-bar"></i></div><div class="note" id="l-exp" style="margin:4px 0 8px"></div>
+   <div id="l-rows"></div><div class="note" id="l-age" style="margin-top:6px"></div></div>
+  <div class="card pan r"><h4 style="color:var(--o)">ОТСРЕЩА</h4><div class="alert hide" id="r-alert"></div>
+   <div class="sigrow"><div class="big2" id="r-sig">--</div><span class="unit">dBm</span><div class="peakd"><b id="r-dpk">--</b><div class="note">dB от пика</div></div></div>
+   <div class="bar"><i id="r-bar"></i></div><div class="note" id="r-exp" style="margin:4px 0 8px"></div>
+   <div id="r-rows"></div><div class="note" id="r-age" style="margin-top:6px"></div></div>
+ </div>
+
+ <div class="card"><h3>Разговор с другия компютър</h3><span class="note" id="chat-state"></span>
+  <div class="chat" id="chatlog" style="max-height:200px"><span class="note">Още няма съобщения.</span></div>
+  <div class="chips" id="quick"></div>
+  <div style="display:flex;gap:8px;margin-top:8px"><input id="chat-text" maxlength="200" placeholder="Съобщение до другия компютър..."><button class="btn" id="chat-send">Изпрати</button><button class="btn" id="b-talk" title="Задръжте (или клавиш Интервал) и говорете">🎤 Задръж и говори</button></div>
+  <p class="note">Бързите бутони и текстът стигат отсреща веднага; ✓ значи, че другият компютър го е получил. За глас задръжте бутона 🎤 (или клавиша Интервал, когато не пишете в поле), говорете и пуснете - отсреща се чува след около секунда. Първия път браузърът пита за микрофона - натиснете „Разреши“.</p>
+  <label><input type="checkbox" id="chat-speak" checked> Чети на глас получените текстови съобщения</label></div>
+
+ <div class="grid2">
+  <div class="card"><h3>История на сигнала <span class="note">(последните 3 минути)</span></h3>
+   <canvas id="hist" width="520" height="200" style="height:200px"></canvas>
+   <div class="note" style="margin-top:4px"><b style="color:#1f6feb">—</b> тук приема · <b style="color:#c2410c">—</b> отсреща приема · пунктир = пик тук</div></div>
+  <div class="card"><h3>Целта за моята страна</h3>
+   <div id="target"><span class="note">Изчислете плана в „План и карта“, за да видите целевия азимут и наклон.</span></div>
+   <div class="grid" style="margin-top:8px">
+    <div><label>Компасът ми показва сега, °</label><input id="heading" type="number" step="0.1" min="0" max="360"></div>
+    <div><label>Инклинометърът показва, °</label><input id="tilt-now" type="number" step="0.1"></div></div>
+   <div id="turn" class="note" style="margin-top:6px"></div></div>
+ </div>
+ <div class="card"><h3>Свързани устройства (регистрационна таблица)</h3>
+  <div id="peers"><span class="note">Няма свързани устройства в регистрационната таблица.</span></div></div>
+</section>
+
+<!-- ====================== ПЛАН И КАРТА ====================== -->
+<section id="t-plan" class="hide">
+ <div class="grid2">
+  <div>
+   <div class="card"><b>Точка A</b>
+    <div class="grid"><div><label>Име</label><input id="a-name" value="A"></div></div>
+    <label>Координати (или линк от Google Maps)</label><input id="a-ll" value="41.8485, 23.1117">
+    <p><button class="btn" data-pickbtn="a">Посочи на картата</button> <button class="btn" data-herebtn="a">Тук съм</button></p>
+    <div class="grid">
+     <div><label>Терен, н.в. (m) - празно = автоматично</label><input id="a-elev" type="number" placeholder="авто"></div>
+     <div><label>Антена над терена, m</label><input id="a-mast" type="number" value="6"></div>
+     <div><label>Модел</label><select id="a-dev"></select></div>
+     <div><label>Усилване, dBi</label><input id="a-gain" type="number" step="0.5" value="16"></div>
+     <div><label>TX мощност, dBm</label><input id="a-tx" type="number" value="14"></div>
+     <div><label>Ширина на лъча, ° (празно = от модела)</label><input id="a-beam" type="number" placeholder="авто"></div>
+    </div></div>
+   <div class="card"><b>Точка B</b>
+    <div class="grid"><div><label>Име</label><input id="b-name" value="B"></div></div>
+    <label>Координати (или линк от Google Maps)</label><input id="b-ll" value="41.8245, 23.0749">
+    <p><button class="btn" data-pickbtn="b">Посочи на картата</button> <button class="btn" data-herebtn="b">Тук съм</button></p>
+    <div class="grid">
+     <div><label>Терен, н.в. (m) - празно = автоматично</label><input id="b-elev" type="number" placeholder="авто"></div>
+     <div><label>Антена над терена, m</label><input id="b-mast" type="number" value="3"></div>
+     <div><label>Модел</label><select id="b-dev"></select></div>
+     <div><label>Усилване, dBi</label><input id="b-gain" type="number" step="0.5" value="16"></div>
+     <div><label>TX мощност, dBm</label><input id="b-tx" type="number" value="14"></div>
+     <div><label>Ширина на лъча, ° (празно = от модела)</label><input id="b-beam" type="number" placeholder="авто"></div>
+    </div></div>
+   <div class="note" style="margin-bottom:10px">Посочете двете точки (на картата, с „Тук съм“ или с координати). Така екранът „Насочване“ показва посоката и очаквания сигнал за вашата страна. Данните за моделите са ориентировъчни - проверете ги в datasheet на производителя.</div>
+   <div class="card"><b>Връзка</b>
+    <div class="grid">
+     <div><label>Честота, MHz</label><input id="freq" type="number" value="5500"></div>
+     <div><label>Ширина на канала, MHz</label><select id="width"><option>20</option><option>40</option><option>80</option></select></div>
+     <div><label>Допълнителни загуби, dB</label><input id="loss" type="number" value="2"></div>
+     <div><label>Дървета/сгради по трасето, m</label><input id="clutter" type="number" value="0"></div>
+     <div><label>Пречупване в атмосферата</label><select id="kf"><option value="1.33">Стандартно (k=1.33)</option><option value="1">Без пречупване (k=1)</option><option value="2">Силно (k=2)</option><option value="0.67">Отрицателно, мъгла (k=0.67)</option></select></div>
+     <div><label>Магнитно отклонение, ° (изток +)</label><input id="decl" type="number" step="0.01" value="5.5"></div>
+    </div>
+    <label><input type="checkbox" id="decl-auto" checked> Автоматично по модела WMM2025 (работи без интернет)</label>
+    <p><button class="btn pri" id="b-calc">Изчисли</button> <button class="btn" id="b-relief" title="Изтегля релефа отново и преизчислява">Обнови релефа</button> <span class="note" id="calc-msg"></span></p></div>
+  </div>
+  <div>
+   <div class="card">
+    <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px">
+     <span class="note">Щракване върху картата задава:</span>
+     <span class="seg" id="pick-seg"><button data-p="a" class="on">точка A</button><button data-p="b">точка B</button></span>
+     <span class="seg" id="lay-seg"><button data-l="osm" class="on">Карта</button><button data-l="topo">Релеф</button><button data-l="sat">Сателит</button></span>
+     <button class="btn" id="b-loc" title="Задава избраната точка по местоположението на устройството">Моята позиция</button>
+     <button class="btn" id="b-fit">Покажи трасето</button>
+    </div>
+    <div id="map"><div class="note" style="padding:20px">Картата се зарежда...</div></div>
+    <div class="note" style="margin-top:6px" id="map-note">Маркерите се местят с влачене. Сините/оранжевите сектори показват посоката и ширината на лъча. Подложките на картата изискват интернет.</div>
+   </div>
+   <div class="card"><b>Проекти</b>
+    <div class="grid" style="align-items:end">
+     <div><label>Име на проект</label><input id="proj-name" placeholder="напр. Клиент - Склад"></div>
+     <div><label>Запазени</label><select id="proj-list"></select></div>
+    </div>
+    <p><button class="btn" id="proj-save">Запази</button> <button class="btn" id="proj-load">Зареди</button>
+    <button class="btn dng" id="proj-del">Изтрий</button> <button class="btn" id="proj-exp">Експорт (JSON)</button>
+    <label class="btn" style="display:inline-block;margin:0">Импорт <input type="file" id="proj-imp" accept=".json" class="hide"></label></p></div>
+   <div class="card"><b>Сподели</b><p class="note">Изпраща въведените данни (точки, височини, модели, честота) на другия компютър през синхронизацията, за да имате еднакви числа от двете страни.</p>
+    <button class="btn" id="plan-send">Изпрати плана на другия компютър</button> <span class="note" id="plan-send-msg"></span></div>
+  </div>
+ </div>
+ <div id="res"><div class="card"><span class="note">Въведете точките (или ги посочете на картата) и натиснете „Изчисли“. Релефът се взема от Open-Meteo (Copernicus DEM, 90 m) и изисква интернет. Той не включва дървета и сгради - ползвайте полето „Дървета/сгради по трасето“.</span></div></div>
+ <div class="card"><canvas id="cv" width="1040" height="300" style="height:300px"></canvas>
+  <div class="note" style="margin-top:4px"><span style="color:#b59a6a">■</span> терен (с кривината на Земята) · <span style="color:#3b9a4a">■</span> дървета/сгради · <b style="color:#1f6feb">—</b> линия на видимост · <span style="color:#8fb4f0">■</span> 1-ва зона на Френел · <span style="color:#c2410c">- -</span> 60% от зоната</div></div>
+</section>
+
+<!-- ====================== НАСТРОЙКА НА АНТЕНАТА ====================== -->
+<section id="t-setup" class="hide">
+ <h2 style="margin:0 0 6px">Настройка на антената и тест на скоростта</h2>
+ <p class="note">Тук програмата настройва антената вместо вас - без WinBox и без команди. Правете го у дома, на бюрото, за всяка антена поотделно (с този или с другия компютър). Отнема 1-3 минути на антена. Следвайте стъпките отгоре надолу.</p>
+
+ <div class="card"><h3><span class="step">1</span>Свържете антената</h3>
+  <ol><li>Порт <b>PoE</b> на адаптера → към антената. Порт <b>LAN</b> → към този компютър. Адаптерът - в контакта.</li>
+  <li>Изчакайте около минута, докато антената тръгне. Програмата я намира сама по кабела (както „Neighbors“ в WinBox) - не пишете IP адреси.</li>
+  <li>Ако програмата поиска парола - тя е на етикета на антената (<i>Password</i>). Въвежда се в раздел „Насочване“, най-отгоре.</li>
+  <li>Когато горе пише „Антена ✓“, натиснете „Провери антената“. Нищо не се променя - програмата само чете какво има на антената.</li></ol>
+  <div id="su-neigh" class="note"></div>
+  <label>Антена</label><select id="su-target" style="width:auto"><option value="local">Основна (към която е свързан компютърът)</option><option value="far">Втора (другата страна)</option></select>
+  <p><button class="btn pri" id="su-read">Провери антената</button> <span class="note" id="su-msg"></span></p>
+  <div id="su-info"></div></div>
+
+ <div class="card"><h3><span class="step">2</span>Коя е тази антена</h3>
+  <p>Едната антена е <b>точка за достъп</b>, другата - <b>клиент</b>. Няма значение коя коя е, но обикновено точката за достъп е там, откъдето идва интернетът. Изборът идва от „План и карта“ (кой компютър е А и кой Б) - можете да го смените тук.</p>
+  <select id="lk-role" style="width:auto"><option value="ap">А - Точка за достъп</option><option value="client">Б - Клиент</option></select></div>
+
+ <div class="card"><h3><span class="step">3</span>Данни за връзката</h3>
+  <p class="note">Попълнено е с подходящи стойности - обикновено трябва само да измислите парола. <b>Името на връзката, паролата и честотата трябва да са еднакви на двете антени.</b></p>
+  <div class="grid">
+   <div><label>Име на антената</label><input id="lk-ident" value="A-ptp"><div class="note">Вижда се в програмата и в WinBox. Латиница, без интервали.</div></div>
+   <div><label>Име на връзката (SSID)</label><input id="lk-ssid" value="PTP-LINK"><div class="note">Еднакво на двете антени.</div></div>
+   <div><label>Парола на връзката (8-63 знака)</label><div style="display:flex;gap:6px"><input id="lk-pass" type="password"><button class="btn" id="lk-show">Покажи</button><button class="btn" id="lk-gen">Измисли нова</button></div><div class="note">Латиница и цифри. <b>Еднаква на двете антени - запишете си я.</b> Това не е паролата на admin - тя не се сменя.</div></div>
+   <div><label>Честота, MHz</label><div style="display:flex;gap:6px"><input id="lk-freq" type="number" value="5500"><button class="btn" id="lk-fill">От плана</button></div><div class="note">Еднаква на двете антени.</div></div>
+   <div><label>Ширина на канала, MHz</label><select id="lk-width"><option>20</option><option>40</option><option>80</option></select><div class="note">Започнете с 20 - по-стабилно е за насочване.</div></div>
+   <div><label>IP адрес на антената</label><input id="lk-ip" value="192.168.88.2/24"><div class="note">Различен за двете антени (обикновено .2 и .3). Ако антената ще е в домашна мрежа и искате да я стигате по IP, сложете свободен адрес от нея.</div></div>
+   <div><label>Шлюз (по желание)</label><input id="lk-gw" placeholder="празно"><div class="note">Само ако антената трябва да излиза в интернет (за обновяване на RouterOS). Обикновено е адресът на рутера.</div></div>
+  </div>
+  <details><summary>Допълнителни настройки</summary><div class="grid">
+   <div><label>Пакет</label><select id="lk-pkg"><option value="wifi">wifi (RouterOS 7, ax модели)</option><option value="wireless">wireless (класическо меню)</option></select></div>
+   <div><label>Безжичен интерфейс</label><input id="lk-if" value="wifi1" list="lk-iflist"><datalist id="lk-iflist"></datalist></div>
+   <div><label>Кабелен порт</label><input id="lk-eth" value="ether1"></div>
+   <div><label>Обхват</label><select id="lk-band"></select></div>
+   <div><label>Държава (латиница)</label><input id="lk-country" value="Bulgaria"></div></div>
+   <label><input type="checkbox" id="lk-nv2"> Nv2 (само пакет wireless и MikroTik от двете страни)</label></details>
+  <label><input type="checkbox" id="lk-clean"> Изчисти всички стари настройки преди това</label>
+  <div class="note">Не е задължително: програмата сама маха фабричните неща, които пречат на моста (раздаване на адреси и др.). Изберете го, ако антената е настройвана преди и искате да започнете на чисто. Паролата на admin остава.</div></div>
+
+ <div class="card"><h3><span class="step">4</span>Преглед и прилагане</h3>
+  <ol><li>Натиснете <b>„Покажи какво ще се промени“</b> и прочетете списъка.</li>
+  <li>Натиснете <b>„Приложи настройките“</b>. Програмата първо прави резервно копие на сегашните настройки в самата антена, после записва новите.</li>
+  <li>Връзката с антената за момент може да прекъсне - това е нормално. Не изключвайте антената, докато не излезе резултат.</li></ol>
+  <div class="banner warn"><b>Внимание:</b> промяната на SSID, парола, честота или IP може да прекъсне връзката с антената. Командите са генерирани по документацията на RouterOS и не са проверявани с всички версии - прегледайте ги внимателно.</div>
+  <textarea id="lk-out" readonly placeholder="Тук ще се покажат командите..."></textarea>
+  <label><input type="checkbox" id="lk-bk" checked> Направи резервно копие преди промяната (препоръчително)</label>
+  <label><input type="checkbox" id="lk-ok"> Разбирам, че връзката може да прекъсне</label>
+  <p><button class="btn" id="lk-prev">Покажи какво ще се промени</button> <button class="btn pri" id="lk-apply">Приложи настройките</button> <button class="btn" id="lk-backup">Само резервно копие</button> <button class="btn" id="lk-copy">Копирай командите</button></p>
+  <div id="lk-res"></div></div>
+
+ <div class="card"><h3><span class="step">5</span>Другата антена и проба на бюрото</h3>
+  <ol><li>Свържете другата антена (към този или към другия компютър) и повторете стъпки 1-4: изберете другата роля, <b>същото име на връзката, същата парола и същата честота</b> и друг IP адрес.</li>
+  <li>Включете двете антени на бюрото, на 2-3 m една от друга и <b>обърнати встрани</b> - иначе сигналът е твърде силен.</li>
+  <li>До минута в раздел „Насочване“ трябва да се появи сигнал. На честоти 5500-5700 MHz (DFS) точката за достъп изчаква 1 минута преди да излъчва (на 5600-5650 MHz - до 10 минути).</li>
+  <li>След това пуснете теста на скоростта отдолу - така сте сигурни, че всичко работи, преди да качите антените.</li></ol></div>
+
+ <div class="card"><h3><span class="step">6</span>Тест на скоростта между антените</h3>
+  <p>Антената, свързана с този компютър, праща данни към другата и едновременно приема от нея (Bandwidth Test на MikroTik). Пуснете го, когато антените вече се виждат - на бюрото за проба и после на място, след насочването. Интернет и компютрите не участват - мери се само радиовръзката. <b>Тестът запълва връзката докрай</b> - не го пускайте върху работеща мрежа.</p>
+  <div id="bt-neigh" class="note"></div>
+  <div class="grid">
+   <div><label>IP адрес на другата антена</label><input id="bt-addr" placeholder="напр. 192.168.88.3"></div>
+   <div><label>Вид на теста</label><select id="bt-proto"><option value="tcp">TCP - като истински трафик</option><option value="udp">UDP - колко най-много може връзката</option></select><div class="note">Започнете с TCP.</div></div>
+   <div><label>Посока</label><select id="bt-dir"><option value="both">и двете</option><option value="send">изпращане</option><option value="receive">приемане</option></select></div>
+   <div><label>Продължителност</label><select id="bt-dur"><option value="5">5 секунди</option><option value="10" selected>10 секунди</option><option value="20">20 секунди</option><option value="30">30 секунди</option></select></div>
+   <div><label>Парола на другата антена (само ако е нужна)</label><input id="bt-pass" type="password" placeholder="не е нужна"><div class="note">Не е нужна, ако двете антени са настроени от програмата с една и съща парола на връзката. Иначе - паролата на admin от етикета ѝ.</div></div>
+  </div>
+  <p><button class="btn pri" id="bt-go">Пусни теста</button> <button class="btn" id="bt-stop">Спри</button> <span class="note" id="bt-msg"></span></p>
+  <div class="two"><div><div class="note">Изпращане сега / средно, Mbps</div><div class="mid" id="bt-tx">--</div></div>
+  <div><div class="note">Приемане сега / средно, Mbps</div><div class="mid" id="bt-rx">--</div></div></div>
+  <div id="bt-hist" class="note" style="margin-top:8px"></div></div>
+
+ <details><summary>Допълнително: потребител само за четене, мрежа на компютъра, полезни команди</summary><div>
+ <div class="card"><h3>Подготви антената за програмата</h3>
+  <p class="note">Създава потребител само с права <code>read, api, test</code> (за четене на сигнала и теста на скоростта), включва API услугата и bandwidth-server. Изпълнява се с данните от „Настройки“ (например администраторски).</p>
+  <div class="grid">
+   <div><label>Нов потребител</label><input id="pr-user" value="alignfree"></div>
+   <div><label>Парола (поне 8 знака)</label><div style="display:flex;gap:6px"><input id="pr-pass"><button class="btn" id="pr-gen">Измисли</button></div></div>
+   <div><label>Разрешен адрес за API (по желание)</label><input id="pr-allow" placeholder="напр. 192.168.88.0/24"></div></div>
+  <label><input type="checkbox" id="pr-bw" checked> Включи bandwidth-server (за теста на скоростта)</label>
+  <p><button class="btn" id="pr-prev">Покажи какво ще се промени</button> <button class="btn pri" id="pr-apply">Приложи</button>
+  <button class="btn" id="pr-save">Ползвай този потребител в програмата</button></p>
+  <textarea id="pr-out" readonly placeholder="Тук ще се покажат командите..."></textarea><div id="pr-res"></div></div>
+ <div class="card"><h3>Мрежа на компютъра (Windows)</h3>
+  <p class="note">За да говори компютърът с антената, трябва да е в същата мрежа. Тук можете временно да зададете статичен адрес и после да върнете автоматичния. Кабелната карта получава временен IP; бутонът „Върни на автоматичен IP“ го премахва. Windows ще поиска потвърждение (UAC).</p>
+  <div class="grid">
+   <div><label>Мрежов адаптер</label><div style="display:flex;gap:6px"><input id="nt-name" list="nt-list" placeholder="напр. Ethernet"><datalist id="nt-list"></datalist><button class="btn" id="nt-load">Покажи</button></div></div>
+   <div><label>IP адрес на компютъра</label><input id="nt-ip" value="192.168.88.10"></div>
+   <div><label>Маска</label><input id="nt-mask" value="255.255.255.0"></div>
+   <div><label>Шлюз (по желание)</label><input id="nt-gw"></div></div>
+  <p><button class="btn pri" id="nt-set">Настрой компютъра автоматично</button> <button class="btn" id="nt-dhcp">Върни на автоматичен IP</button> <span class="note" id="nt-msg"></span></p></div>
+ <div class="card"><h3>Полезни команди за RouterOS (копирайте в терминала на WinBox)</h3><div id="cmds"></div></div>
+ </div></details>
+</section>
+
+<!-- ====================== ОТЧЕТ ====================== -->
+<section id="t-report" class="hide">
+ <div class="card"><h3>Протокол от насочването</h3>
+  <p class="note">Събира плана, запазените точки и последния тест на скоростта в страница за печат или запис като PDF (печат → „Запази като PDF“).</p>
+  <div class="grid">
+   <div><label>Клиент</label><input id="rp-client"></div><div><label>Обект / адрес</label><input id="rp-site"></div>
+   <div><label>Изпълнител</label><input id="rp-who"></div><div><label>Дата</label><input id="rp-date" type="date"></div>
+  </div>
+  <label>Бележки</label><textarea id="rp-notes" style="min-height:70px"></textarea>
+  <h4>Запазени точки на измерване</h4><div id="pts"></div>
+  <p><button class="btn pri" id="rp-print">Отвори за печат</button> <button class="btn" id="rp-dl">Свали като HTML</button>
+  <button class="btn" id="rp-csv">Свали записа (CSV)</button> <button class="btn dng" id="pts-clear">Изчисти точките</button></p></div>
+</section>
+
+<!-- ====================== ИНСТРУКЦИИ ====================== -->
+<section id="t-guide" class="hide">
+ <div id="guide-body"></div>
+</section>
+
+<!-- ====================== НАСТРОЙКИ ====================== -->
+<section id="t-set" class="hide">
+ <div class="card"><h3>Антена, към която е свързан този компютър</h3><div class="grid">
+  <div><label>Адрес</label><input data-k="router_host"></div>
+  <div><label>API порт (8728 или 8729 за SSL)</label><input data-k="router_port" type="number"></div>
+  <div><label>Потребител</label><input data-k="router_user"></div>
+  <div><label>Парола (празно = без промяна)</label><input data-k="router_password" type="password" autocomplete="new-password"></div>
+  <div><label>Само интерфейс (по избор)</label><input data-k="interface" placeholder="напр. wifi1"></div>
+  <div><label>Интервал на опресняване, ms</label><input data-k="poll_ms" type="number"></div></div>
+  <label><input type="checkbox" data-k="router_ssl"> Използвай API-SSL</label>
+  <label><input type="checkbox" data-k="demo"> Демо режим (симулиран сигнал, без антена)</label>
+  <p><button class="btn" id="st-test1">Тествай връзката</button> <button class="btn" id="st-scan">Търси антена в мрежата</button> <span class="note" id="st-msg1"></span></p>
+  <div id="st-found" class="note"></div></div>
+
+ <div class="card"><h3>Втора антена (другата страна, достъпна през самата връзка)</h3>
+  <p class="note">Така един компютър вижда сигнала и от двете страни, без втори лаптоп.</p>
+  <label><input type="checkbox" data-k="router2_enabled"> Включи втората антена</label>
+  <div class="grid"><div><label>Адрес</label><input data-k="router2_host" placeholder="напр. 192.168.88.2"></div>
+  <div><label>API порт</label><input data-k="router2_port" type="number"></div>
+  <div><label>Потребител</label><input data-k="router2_user"></div>
+  <div><label>Парола (празно = без промяна)</label><input data-k="router2_password" type="password" autocomplete="new-password"></div></div>
+  <label><input type="checkbox" data-k="router2_ssl"> Използвай API-SSL</label>
+  <p><button class="btn" id="st-test2">Тествай връзката</button> <span class="note" id="st-msg2"></span></p></div>
+
+ <div class="card"><h3>Тест на скоростта (данни за сървъра на отсрещната антена)</h3>
+  <div class="grid"><div><label>Потребител (по избор)</label><input data-k="btest_user"></div>
+  <div><label>Парола (празно = без промяна)</label><input data-k="btest_password" type="password" autocomplete="new-password"></div></div></div>
+
+ <div class="card"><h3>Синхронизация и разговор между два компютъра</h3>
+  <p class="note">Всеки компютър е свързан със своята антена и праща само стойностите на сигнала през публичен MQTT брокер. Стойностите не са криптирани, затова кодът е дълъг и случаен - споделяйте го само с колегата си.</p>
+  <label><input type="checkbox" data-k="mqtt_enabled"> Включи синхронизацията</label>
+  <div class="grid">
+   <div><label>Този компютър е страна</label><select data-k="side"><option value="a">A</option><option value="b">B</option></select></div>
+   <div><label>Код на стаята (еднакъв на двата компютъра)</label><input data-k="room"></div>
+   <div><label>Брокери (по ред на опити)</label><input data-k="mqtt_brokers"></div></div>
+  <p><button class="btn" id="b-room">Нов код</button> <button class="btn" id="b-room-copy">Копирай кода</button>
+  <span class="note">След смяна на кода запишете настройките и го въведете на другия компютър.</span></p></div>
+
+ <div class="card"><h3>Външен вид и звук</h3>
+  <div class="grid">
+   <div><label>Тема</label><select id="st-theme"><option value="auto">Автоматична</option><option value="light">Светла</option><option value="dark">Тъмна</option></select></div>
+   <div><label>Говор: на всеки, s</label><input id="st-voice" type="number" min="1" max="30" value="3"></div>
+   <div><label>Ниска/висока честота на тона, Hz</label><div style="display:flex;gap:6px"><input id="st-flo" type="number" value="300"><input id="st-fhi" type="number" value="1800"></div></div>
+  </div></div>
+
+ <p><button class="btn pri" id="b-save">Запази и свържи</button> <span class="note" id="save-msg"></span></p>
+ <div class="card"><h3>Бързи клавиши</h3><p><kbd>Интервал</kbd> звук (изкл./тон/говор) · <kbd>P</kbd> нулира пика · <kbd>S</kbd> запазва точка · <kbd>1</kbd>-<kbd>5</kbd> раздели</p>
+  <p class="note">MikrotikAlignFree е безплатна програма, не е официален продукт на MikroTik. Картите са © OpenStreetMap, OpenTopoMap, Esri. Библиотека Leaflet (BSD-2).</p></div>
+</section>
+</main><footer>MikrotikAlignFree v__VERSION__ · безплатна програма, не е официален продукт на MikroTik</footer>
+<div id="tip" class="hide"></div>
+<script src="/static/leaflet.js"></script>
+<script>
+const UILANG=document.documentElement.lang==="bg"?"bg":"en",LOCALE=UILANG==="bg"?"bg-BG":"en-GB",SPEECH=UILANG==="bg"?"bg-BG":"en-US";
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const LS={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+async function api(path,body){const o=body===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)};
+ try{const r=await fetch(path,o);return await r.json()}catch(e){return{ok:false,error:'Програмата не отговаря.'}}}
+function download(name,text,mime){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:mime||'text/plain'}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}
+function copyText(t){if(navigator.clipboard&&window.isSecureContext)return navigator.clipboard.writeText(t).catch(()=>fallbackCopy(t));fallbackCopy(t);return Promise.resolve()}
+function fallbackCopy(t){const e=document.createElement('textarea');e.value=t;document.body.appendChild(e);e.select();try{document.execCommand('copy')}catch(x){}e.remove()}
+const f0=x=>x==null||isNaN(x)?'--':Math.round(x);
+const randPass=n=>{const a=new Uint8Array(n),c='abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';crypto.getRandomValues(a);return [...a].map(x=>c[x%c.length]).join('')};
+function explain(kind,err){const m={timeout:'Антената не отговаря. Проверете адреса, кабела/PoE и дали компютърът е в същата мрежа (напр. 192.168.88.х).',
+ refused:'Адресът отговаря, но API услугата е изключена или портът е друг (по подразбиране 8728). В RouterOS: /ip service enable api',
+ auth:'Грешно потребителско име или парола (или потребителят няма права read и api).',
+ unreachable:'Няма маршрут до този адрес - компютърът е в друга мрежа. Ползвайте „Настройка на антената → Мрежа на компютъра“.',
+ ssl:'Грешка при SSL връзката. Опитайте порт 8728 без SSL или проверете сертификата на api-ssl.',
+ dns:'Адресът не може да се разреши - въведете IP адрес.',closed:'Връзката е прекъсната от антената.'};
+ return m[kind]||err||''}
+
+let PLAN=LS.get('af-plan-result',null),map=null,mk={},lineL=null,beams={},worstM=null,lay={},pick='a',scanTarget=null;
+const RPF=['rp-client','rp-site','rp-who','rp-date','rp-notes'],cfgEls=()=>$$('#t-set [data-k]');
+const TABS=['aim','plan','setup','report','guide','set'];
+/* ---------- раздели ---------- */
+function showTab(t){if(!TABS.includes(t))t='aim';
+ TABS.forEach(x=>$('#t-'+x).classList.toggle('hide',x!==t));
+ $$('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+ $('#toolbar').classList.toggle('hide',t==='set');
+ try{history.replaceState(null,'','#'+t)}catch(e){}
+ if(t==='plan')setTimeout(initMap,50);if(t==='set')loadCfg();if(t==='guide')renderGuide();if(t==='report')renderReport();
+ window.scrollTo(0,0)}
+$$('[data-t]').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.t)));
+$('#b-help').onclick=()=>showTab('guide');
+$('#b-quit').onclick=async()=>{if(confirm('Да спра ли програмата?')){try{await fetch('/api/quit',{method:'POST',body:'{}'})}catch(e){}document.body.innerHTML='<p style="padding:30px">Програмата е спряна. Можете да затворите този раздел.</p>'}};
+
+/* ---------- тема ---------- */
+function applyTheme(m){document.documentElement.dataset.theme=m==='auto'?'':m;LS.set('af-theme',m);const s=$('#st-theme');if(s)s.value=m}
+$('#b-lang-t').textContent=UILANG==='en'?'BG':'EN';$('#b-lang').onclick=async()=>{try{await api('/api/config',{lang:UILANG==='en'?'bg':'en'})}catch(e){}location.reload()};
+$('#b-theme').onclick=()=>{const o=['auto','dark','light'],c=LS.get('af-theme','auto');applyTheme(o[(o.indexOf(c)+1)%3])};
+$('#st-theme').onchange=e=>applyTheme(e.target.value);applyTheme(LS.get('af-theme','auto'));
+
+/* ---------- страна, звук, режим ---------- */
+let st={},peak=null,soundMode=0,actx=null,mySide=LS.get('af-side','a'),rec=null,lastChat=0,hist=[],lastBt='',peaks={l:null,r:null},aimOn=false,cfgCache={},seenPlan=0,seenVoice='';
+function setSide(s){mySide=s;LS.set('af-side',s);$$('#side-seg button').forEach(b=>b.classList.toggle('on',b.dataset.s===s));renderTarget();if(window.syncRole)syncRole()}
+$$('#side-seg button').forEach(b=>b.onclick=()=>setSide(b.dataset.s));setSide(mySide);
+const local=()=>((st.local&&st.local.peers)||[])[0]||null;
+const far=()=>st.far&&st.far.ok?((st.far.peers||[])[0]||null):null;
+const mq=()=>{const r=st.mqtt&&st.mqtt.remote;return r&&st.now-r.ts<5?r:null};
+function remoteSig(){const f=far();if(f&&f.signal!=null)return{v:f.signal,src:'(втората антена)'};
+ const m=mq();if(m&&m.signal!=null)return{v:m.signal,src:'(другия компютър)'};
+ const l=local();if(l&&l.tx_signal!=null)return{v:l.tx_signal,src:'(TX сигнал от антената)'};return null}
+function cur(){const l=local(),mode=$('#mode').value,mine=l?l.signal:null,r=remoteSig(),rv=r?r.v:null;
+ if(mode==='remote')return rv;if(mode==='min'){const a=[mine,rv].filter(x=>x!=null);return a.length?Math.min(...a):null}return mine}
+const quality=v=>v>=-60?'var(--g)':v>=-68?'#4d8f12':v>=-75?'var(--y)':v>=-82?'var(--o)':'var(--r)';
+const verdictOf=v=>v>=-55?'Отличен сигнал':v>=-65?'Много добър сигнал':v>=-72?'Добър сигнал':v>=-78?'Приемлив сигнал - малък запас':v>=-85?'Слаб сигнал':'Много слаб сигнал';
+$('#b-sound').onclick=cycleSound;
+function cycleSound(){soundMode=(soundMode+1)%3;$('#b-sound').textContent='Звук: '+['изкл.','тон','говор'][soundMode];
+ if(soundMode&&!actx){try{actx=new (window.AudioContext||window.webkitAudioContext)()}catch(e){}}
+ if(soundMode===1)beepLoop();if(soundMode===2)voiceLoop()}
+let beepT=null,voiceT=null;
+function beepLoop(){clearTimeout(beepT);if(soundMode!==1||!actx)return;const v=cur();let next=500;
+ if(v!=null){const q=Math.max(0,Math.min(1,(v+90)/50)),lo=+$('#st-flo').value||300,hi=+$('#st-fhi').value||1800;
+  const o=actx.createOscillator(),g=actx.createGain();o.frequency.value=lo+q*(hi-lo);g.gain.value=.15;o.connect(g);g.connect(actx.destination);o.start();o.stop(actx.currentTime+.08);next=700-q*600}
+ beepT=setTimeout(beepLoop,next)}
+function speak(t){try{const u=new SpeechSynthesisUtterance(t);u.lang=SPEECH;u.rate=1.05;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
+function voiceLoop(){clearTimeout(voiceT);if(soundMode!==2)return;const v=cur();if(v!=null)speak('минус '+Math.abs(v));voiceT=setTimeout(voiceLoop,(+$('#st-voice').value||3)*1000)}
+$('#b-peak').onclick=()=>{peak=null;peaks.l=null;peaks.r=null;render()};
+$('#mode').onchange=()=>{peak=null;peaks.l=null;peaks.r=null;hist=[];render()};
+$('#b-rec').onclick=()=>{if(rec){const n=rec.length;$('#b-rec').textContent='Запис: изкл.';$('#b-rec').classList.remove('pri');
+  if(n&&confirm('Записът има '+n+' измервания. Да го сваля ли като CSV?'))downloadCsv()}
+ else{rec=[];$('#b-rec').textContent='Запис: вкл.';$('#b-rec').classList.add('pri')}};
+function csvText(){return 'време;тук_dBm;другата_страна_dBm;tx_скорост;rx_скорост\n'+(rec||[]).map(r=>[r.t,r.a,r.b,r.tx,r.rx].join(';')).join('\n')}
+function downloadCsv(){download('alignfree-zapis-'+new Date().toISOString().slice(0,16).replace(/[:T]/g,'-')+'.csv','﻿'+csvText(),'text/csv')}
+$('#b-point').onclick=savePoint;
+function savePoint(){const l=local();if(!l){alert('Няма данни за сигнала.');return}const r=remoteSig(),
+ label=prompt('Име на точката (напр. „след затягане“):','')||'';const pts=LS.get('af-points',[]);
+ pts.push({t:new Date().toLocaleString(LOCALE),side:mySide.toUpperCase(),label:label,here:l.signal,there:r?r.v:null,peak:peak,
+  heading:$('#heading').value,tilt:$('#tilt-now').value,tx:l.tx_rate,rx:l.rx_rate});LS.set('af-points',pts);renderPoints()}
+const typing=e=>{const t=(e.target.tagName||'').toLowerCase();return t==='input'||t==='textarea'||t==='select'};
+document.addEventListener('keydown',e=>{if(typing(e))return;
+ if(e.code==='Space'){e.preventDefault();if(!e.repeat)talkStart()}else if(e.key==='m'||e.key==='M')cycleSound();
+ else if(e.key==='p'||e.key==='P'){peak=null;peaks.l=null;peaks.r=null;render()}
+ else if(e.key==='s'||e.key==='S')savePoint();else if(/^[1-5]$/.test(e.key))showTab(TABS[+e.key-1])});
+document.addEventListener('keyup',e=>{if(e.code==='Space'&&!typing(e))talkStop()});
+
+/* ---------- опресняване ---------- */
+function pill(id,text,cls){const e=$(id);e.textContent=text;e.className='pill '+cls}
+const nv=v=>v==null||v===''||(typeof v==='number'&&isNaN(v))?'—':v;
+function ifState(i){if(!i)return '—';return (i.mode||'—')+' / '+(i.disabled==='true'?'изключен':i.running==='true'?'работи':'неактивен')}
+function detailRows(p,i,x){
+ if(x){return [['Вериги Ch0 / Ch1',nv(x.ch0)+' / '+nv(x.ch1)],['CCQ tx / rx',nv(x.tc)+' / '+nv(x.rc)],['SNR / шум',nv(x.snr)+' / '+nv(x.nf)],
+  ['Режим',nv(x.mode)],['Честота / ширина',nv(x.fr)+' / '+nv(x.w)],['Връзка от',nv(x.up)]]}
+ return [['Вериги Ch0 / Ch1',nv(p.ch0)+' / '+nv(p.ch1)],['Приема се отсреща',p.tx_signal!=null?p.tx_signal+' dBm':'—'],['CCQ tx / rx',nv(p.tx_ccq)+' / '+nv(p.rx_ccq)],
+  ['SNR / шум',nv(p.snr)+' / '+nv(p.noise)],['Скорост tx / rx',nv(p.tx_rate)+' / '+nv(p.rx_rate)],['Режим / състояние',ifState(i)],
+  ['Честота / ширина',i?nv(i.frequency)+' / '+nv(i.width):'—'],['Връзка от',nv(p.uptime)]]}
+function fillPanel(k,o){
+ const sig=o.sig,pk=peaks[k];
+ if(sig!=null){peaks[k]=pk==null?sig:Math.max(pk,sig)}
+ $('#'+k+'-sig').textContent=sig==null?'--':sig;$('#'+k+'-sig').style.color=sig==null?'':quality(sig);
+ $('#'+k+'-dpk').textContent=sig==null||peaks[k]==null?'--':(sig-peaks[k]).toFixed(0);
+ $('#'+k+'-bar').style.width=sig==null?'0':Math.max(0,Math.min(100,(sig+90)/50*100))+'%';$('#'+k+'-bar').style.background=sig==null?'':quality(sig);
+ $('#'+k+'-exp').textContent=o.exp!=null?'Очакван по плана: '+f0(o.exp)+' dBm'+(sig!=null?' ('+(sig-o.exp>=0?'+':'')+f0(sig-o.exp)+' dB)':''):'';
+ const al=$('#'+k+'-alert');if(o.alert){al.textContent=o.alert;al.className='alert'+(o.err?' err':'')}else al.className='alert hide';
+ $('#'+k+'-rows').innerHTML=(o.rows||[]).map(r=>'<div class="kv"><span>'+esc(r[0])+'</span><b>'+esc(r[1])+'</b></div>').join('');
+ $('#'+k+'-age').textContent=o.age!=null?'данни преди '+o.age+' ms':''}
+function render(){
+ const L=st.local||{},F=st.far||{},M=st.mqtt||{};
+ if(L.ok)pill('#conn','Антена: '+(L.identity||'свързана')+' ✓','ok');else pill('#conn',L.kind==='auth'?'Антена: иска парола':'Антена: няма връзка','bad');
+ if(F.enabled)pill('#far-pill',F.ok?'Втора антена: '+(F.identity||'свързана')+' ✓':'Втора антена: няма връзка',F.ok?'ok':'bad');else $('#far-pill').className='pill hide';
+ const N=st.internet;if(N&&N.total){pill('#net-pill','Интернет: '+N.ok+'/'+N.total+' сървъра',N.ok===N.total?'ok':N.ok?'warn':'bad')}
+ if(M.enabled){const live=!!mq();pill('#mq-pill',M.ok?(live?'Отсреща ✓':'Отсреща: чака...'):'Синхронизация: '+(M.error||'...'),M.ok&&live?'ok':(M.ok?'warn':'bad'))}else $('#mq-pill').className='pill hide';
+ renderBanner();
+ const aw=st.aim_remote,remoteAim=aw&&aw.on&&st.now-aw.ts<15;$('#aimwarn').classList.toggle('hide',!remoteAim);
+ const p=local(),a=mySide==='a';
+ const expL=PLAN?(a?PLAN.rxA:PLAN.rxB):null,expR=PLAN?(a?PLAN.rxB:PLAN.rxA):null;
+ const li=(L.ifaces||[])[0];
+ fillPanel('l',{sig:p?p.signal:null,exp:expL,rows:p?detailRows(p,li):[],age:L.ts?Math.round((st.now-L.ts)*1000):null,
+  alert:!L.ok?'Нужно е действие - вижте съобщението над панелите.':(!p?'Антената е свързана, но няма свързан клиент в регистрационната таблица (проверете SSID, парола, честота и роли).':''),err:!L.ok});
+ const fp=far(),m=mq();let rsig=null,rows=[],age=null,al='',x=null;
+ if(fp){rsig=fp.signal;rows=detailRows(fp,(F.ifaces||[])[0]);age=Math.round((st.now-F.ts)*1000)}
+ else if(m){rsig=m.signal;x=m.x||{};rows=[['Приема се отсреща',m.tx_signal!=null?m.tx_signal+' dBm':'—'],['Скорост tx / rx',nv(m.tx_rate)+' / '+nv(m.rx_rate)],['Антена',nv(m.identity)]].concat(detailRows(null,null,x));age=Math.round((st.now-m.ts)*1000)}
+ else if(M.enabled)al='Чакам другия компютър... Пуснете програмата там със стая „'+(cfgCache.room||'')+'“.';
+ else al='Няма данни отсреща. Включете „Синхронизация“ (втори компютър) или втората антена в „Настройки“.';
+ fillPanel('r',{sig:rsig,exp:expR,rows:rows,age:age,alert:al});
+ const v=cur();
+ if(v!=null){peak=peaks.l;const now=Date.now();hist.push({t:now,v:p?p.signal:null,r:rsig});while(hist.length&&now-hist[0].t>180000)hist.shift();drawHist();
+  if(rec&&(!rec.last||now-rec.last>=1000)){rec.last=now;rec.push({t:new Date().toISOString(),a:p?p.signal:'',b:rsig==null?'':rsig,tx:p?p.tx_rate:'',rx:p?p.rx_rate:''})}}
+ renderPeers();renderBt();renderChat();renderTurn();renderPlanIn();renderVoice();renderNeigh()}
+function renderPeers(){const L=st.local||{},ps=L.peers||[];const e=$('#peers');if(!ps.length){e.innerHTML='<span class="note">Няма свързани устройства в регистрационната таблица.</span>';return}
+ e.innerHTML='<table><tr><th>MAC</th><th>Интерфейс</th><th>Сигнал</th><th>Приема се отсреща</th><th>TX</th><th>RX</th><th>CCQ</th><th>Връзка от</th></tr>'+
+ ps.map(x=>'<tr><td>'+esc(x.mac)+'</td><td>'+esc(x.interface)+'</td><td>'+f0(x.signal)+'</td><td>'+f0(x.tx_signal)+'</td><td>'+esc(x.tx_rate)+'</td><td>'+esc(x.rx_rate)+'</td><td>'+(x.ccq==null?'--':x.ccq+'%')+'</td><td>'+esc(x.uptime)+'</td></tr>').join('')+'</table>'}
+function drawHist(){const cv=$('#hist'),g=cv.getContext('2d'),W=cv.width,H=cv.height,P=24,SPAN=180000;g.clearRect(0,0,W,H);
+ const css=getComputedStyle(document.body);g.strokeStyle=css.getPropertyValue('--bd');g.fillStyle=css.color;g.font='11px sans-serif';
+ [-90,-80,-70,-60,-50,-40].forEach(v=>{const y=H-P-(H-2*P)*(v+90)/50;g.beginPath();g.moveTo(P+14,y);g.lineTo(W-6,y);g.stroke();g.fillText(v,2,y+4)});
+ if(hist.length<2)return;const now=Date.now(),X=t=>W-6-(W-P-20)*(now-t)/SPAN,Y=v=>H-P-(H-2*P)*Math.max(0,Math.min(50,v+90))/50;
+ [['v','#1f6feb'],['r','#c2410c']].forEach(s=>{g.strokeStyle=s[1];g.lineWidth=2;g.beginPath();let open=false;hist.forEach(h=>{if(h[s[0]]==null){open=false;return}const x=X(h.t),y=Y(h[s[0]]);if(open)g.lineTo(x,y);else g.moveTo(x,y);open=true});g.stroke()});
+ if(peaks.l!=null){g.setLineDash([5,4]);g.lineWidth=1;g.strokeStyle='#1f6feb';g.beginPath();g.moveTo(P+14,Y(peaks.l));g.lineTo(W-6,Y(peaks.l));g.stroke();g.setLineDash([])}}
+function renderTarget(){const e=$('#target'),sb=$('#sumbar');
+ if(!PLAN){e.innerHTML='<span class="note">Изчислете плана в „План и карта“, за да видите целевия азимут и наклон.</span>';sb.classList.add('hide');return}
+ const a=mySide==='a',az=a?PLAN.magA:PLAN.magB,tilt=a?PLAN.tiltA:-PLAN.tiltA,geo=a?PLAN.az:PLAN.azb,rx=a?PLAN.rxA:PLAN.rxB;
+ e.innerHTML='<table><tr><td>Страна</td><td><b>'+mySide.toUpperCase()+'</b></td></tr><tr><td>Целеви азимут по компас</td><td><b>'+az.toFixed(1)+'°</b> (географски '+geo.toFixed(1)+'°)</td></tr>'+
+ '<tr><td>Целеви наклон</td><td><b>'+tiltTxt(tilt)+'</b></td></tr><tr><td>Очакван сигнал</td><td>'+f0(rx)+' dBm</td></tr></table>';
+ sb.classList.remove('hide');
+ sb.innerHTML='<b style="color:'+(a?'#1f6feb':'#c2410c')+'">'+mySide.toUpperCase()+' → '+(a?'Б':'А')+'</b> <span class="note">'+(PLAN.D/1000).toFixed(2)+' km</span> <span class="note">Азимут</span> <b>'+geo.toFixed(1)+'°</b> <span class="note">По компас</span> <b>'+az.toFixed(1)+'°</b> <span class="note">Наклон</span> <b>'+tiltTxt(tilt)+'</b> <span class="note">Очакван сигнал</span> <b>'+f0(rx)+' dBm</b>'}
+function renderTurn(){const e=$('#turn');if(!PLAN){e.textContent='';return}const a=mySide==='a',az=a?PLAN.magA:PLAN.magB,tilt=a?PLAN.tiltA:-PLAN.tiltA,out=[];
+ const h=parseFloat($('#heading').value);if(!isNaN(h)){const d=((az-h+540)%360)-180;out.push(Math.abs(d)<1?'Посоката съвпада (отклонение '+d.toFixed(1)+'°).':'Завъртете '+Math.abs(d).toFixed(1)+'° '+(d>0?'надясно (по часовниковата стрелка)':'наляво')+'.')}
+ const t=parseFloat($('#tilt-now').value);if(!isNaN(t)){const d=tilt-t;out.push(Math.abs(d)<0.3?'Наклонът съвпада.':'Наклонете '+Math.abs(d).toFixed(1)+'° '+(d>0?'нагоре':'надолу')+'.')}
+ e.textContent=out.join(' ')}
+$('#heading').oninput=renderTurn;$('#tilt-now').oninput=renderTurn;
+
+/* ---------- банер за връзка, откриване на антени ---------- */
+let pickedLogin=false;
+function renderBanner(){const L=st.local||{},cb=$('#cb'),nb=st.neighbors||[],host=cfgCache.router_host;
+ const show=!L.ok&&L.ts;cb.classList.toggle('hide',!show);if(!show){pickedLogin=false;return}
+ const me=nb.find(n=>n.ip===host),auth=L.kind==='auth';
+ let t='';
+ if(auth)t='<b>'+(me?'Намерих '+esc(me.identity||'антена')+(me.board?' ('+esc(me.board)+')':'')+', но иска парола.':'Антената иска парола.')+'</b> Записаната парола не става. Паролата е на етикета на антената (или тази, която сте сложили).';
+ else t='<b>Няма връзка с антената ('+esc(host||'?')+').</b> '+esc(explain(L.kind,L.error))+(L.error?' <span class="note">(техническо: '+esc(L.error)+')</span>':'');
+ $('#cb-main').innerHTML=t;
+ $('#cb-login').style.display=auth||pickedLogin?'flex':'none';$('#cb-login').classList.remove('hide');
+ $('#cb-steps').classList.toggle('hide',auth);
+ const nbh=nb.length?'<span class="note">Виждам '+nb.length+' '+(nb.length===1?'антена':'антени')+' - изберете тази, която е <b>с кабел към този компютър</b>: </span>'+nb.map(n=>'<button class="btn'+(n.ip===host?' pri':'')+'" data-nip="'+esc(n.ip)+'">'+esc(n.identity||'MikroTik')+(n.board?' ('+esc(n.board)+')':'')+' · '+esc(n.ip)+(n.same_net?'':' · друга мрежа')+'</button>').join(' '):'<span class="note">Не виждам антени по кабела (откриване MNDP). Изчакайте минута след включване или опитайте „Търси по IP адреси“.</span>';
+ $('#cb-neigh').innerHTML=nbh;
+ $$('#cb-neigh [data-nip]').forEach(b=>b.onclick=async()=>{pickedLogin=true;await api('/api/config',{router_host:b.dataset.nip});await loadCfgCache();render()});
+ const other=nb.find(n=>n.ip===host&&!n.same_net)||nb.find(n=>!n.same_net&&!nb.some(m=>m.same_net));
+ $('#cb-auto').classList.toggle('hide',!(other));}
+async function loadCfgCache(){cfgCache=await api('/api/config');roomChip(cfgCache)}
+$('#cb-go').onclick=async()=>{await api('/api/config',{router_user:$('#cb-user').value,router_password:$('#cb-pass').value});$('#cb-main').innerHTML='<b>Свързвам...</b>';await loadCfgCache()};
+$('#cb-pass').onkeydown=e=>{if(e.key==='Enter')$('#cb-go').click()};
+$('#cb-auto').onclick=async()=>{const nb=(st.neighbors||[]).find(n=>!n.same_net);if(!nb)return;
+ const ad=await api('/api/netsh/adapters');if(!ad.ok){alert(ad.error);return}
+ let name=ad.adapters.find(x=>/ethernet|lan|кабел/i.test(x))||ad.adapters[0];if(ad.adapters.length>1)name=prompt('Кой адаптер е с кабела към антената?\n'+ad.adapters.join('\n'),name)||'';if(!name)return;
+ const parts=nb.ip.split('.');let last=250;if(+parts[3]===last)last=249;const ip=parts[0]+'.'+parts[1]+'.'+parts[2]+'.'+last;
+ if(!confirm('Ще задам на адаптер „'+name+'“ временен адрес '+ip+', за да стигне до антената. Windows ще поиска потвърждение. Продължавам ли?'))return;
+ const j=await api('/api/netsh/set',{name:name,ip:ip,mask:'255.255.255.0',gateway:'',dhcp:false});$('#ob-found').textContent=j.ok?'Готово. Адресът е зададен - след няколко секунди връзката трябва да тръгне. „Върни на автоматичен IP“ е в „Настройка на антената → Допълнително“.':j.error;};
+$('#ob-set').onclick=()=>showTab('set');$('#ob-guide').onclick=()=>showTab('guide');
+$('#ob-demo').onclick=async()=>{await api('/api/config',{demo:true});$('#ob-found').textContent='Демо режимът е включен.'};
+$('#ob-scan').onclick=()=>startScan('#ob-found');
+
+/* ---------- „Аз насочвам“ ---------- */
+function setAim(on){aimOn=on;$('#b-aim').classList.toggle('pri',on);$('#b-aim').textContent=on?'Аз насочвам ✓':'Аз насочвам';api('/api/aim',{on:on})}
+$('#b-aim').onclick=()=>setAim(!aimOn);
+setInterval(()=>{if(aimOn)api('/api/aim',{on:true})},5000);
+
+/* ---------- разговор, глас ---------- */
+const QUICK=['Чуваш ли ме?','Чакай','Върти бавно','Расте ↑','Пада ↓','Върни назад','Спри - пикът е тук','Готово - твой ред'];
+$('#quick').innerHTML=QUICK.map(q=>'<button class="btn">'+esc(q)+'</button>').join('');
+$$('#quick button').forEach((b,i)=>b.onclick=()=>sendChat(QUICK[i]));
+async function sendChat(t){t=(t||'').trim();if(!t)return;const j=await api('/api/chat',{text:t});if(!j.ok)alert(j.error);else $('#chat-text').value=''}
+$('#chat-send').onclick=()=>sendChat($('#chat-text').value);$('#chat-text').onkeydown=e=>{if(e.key==='Enter')sendChat(e.target.value)};
+function renderChat(){const c=st.chat,M=st.mqtt||{};$('#chat-state').textContent=M.enabled?(M.ok&&mq()?'другият компютър е на линия':'другият компютър не е на линия'):'(изисква синхронизация - Настройки)';
+ if(!c||!c.log||!c.log.length)return;
+ $('#chatlog').innerHTML=c.log.slice(-25).map(m=>'<div class="'+(m.mine?'me':'')+'"><b>'+(m.mine?'Аз':'Страна '+esc(String(m.side).toUpperCase()))+':</b> '+esc(m.text)+(m.mine?(m.delivered?' <span class="ok">✓</span>':' <span class="note">…</span>'):'')+'</div>').join('');
+ $('#chatlog').scrollTop=1e9;
+ c.log.forEach(m=>{if(m.id>lastChat){if(lastChat>0&&!m.mine){if($('#chat-speak').checked)speak(m.text);beepOnce()}lastChat=m.id}})}
+function beepOnce(){try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();const o=actx.createOscillator(),g=actx.createGain();o.frequency.value=880;g.gain.value=.2;o.connect(g);g.connect(actx.destination);o.start();o.stop(actx.currentTime+.15)}catch(e){}}
+let mrec=null,mchunks=[],talking=false,talkTimer=null;
+async function talkStart(){if(talking)return;talking=true;
+ try{const s=await navigator.mediaDevices.getUserMedia({audio:true});if(!talking){s.getTracks().forEach(t=>t.stop());return}
+  const mime=['audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/mp4'].find(m=>window.MediaRecorder&&MediaRecorder.isTypeSupported(m))||'';
+  mrec=new MediaRecorder(s,mime?{mimeType:mime,audioBitsPerSecond:24000}:{audioBitsPerSecond:24000});mchunks=[];
+  mrec.ondataavailable=e=>{if(e.data&&e.data.size)mchunks.push(e.data)};
+  mrec.onstop=()=>{s.getTracks().forEach(t=>t.stop());const blob=new Blob(mchunks,{type:mrec.mimeType||'audio/webm'});
+   if(blob.size<600)return;if(blob.size>110000){alert('Записът е твърде дълъг. Говорете по-кратко (до 15 секунди).');return}
+   const fr=new FileReader();fr.onload=async()=>{const j=await api('/api/voice',{m:blob.type,d:String(fr.result).split(',')[1]});if(!j.ok)alert(j.error)};fr.readAsDataURL(blob)};
+  mrec.start();$('#b-talk').classList.add('pri');clearTimeout(talkTimer);talkTimer=setTimeout(talkStop,15000)}
+ catch(e){talking=false;alert('Микрофонът не е достъпен: '+e.message+'. Разрешете го в браузъра (иконата вляво от адреса).')}}
+function talkStop(){talking=false;clearTimeout(talkTimer);if(mrec&&mrec.state==='recording')mrec.stop();$('#b-talk').classList.remove('pri')}
+$('#b-talk').addEventListener('pointerdown',e=>{e.preventDefault();talkStart()});
+['pointerup','pointerleave','pointercancel'].forEach(ev=>$('#b-talk').addEventListener(ev,talkStop));
+async function renderVoice(){const v=st.voice_in;if(!v||v.id===seenVoice)return;seenVoice=v.id;
+ const j=await api('/api/voice?id='+v.id);if(!j.ok)return;try{const a=new Audio('data:'+j.m+';base64,'+j.d);a.play().catch(()=>{});
+}catch(e){}}
+/* ---------- получен план ---------- */
+function renderPlanIn(){const pi=st.plan_in,e=$('#planin');if(!pi||pi.ts===seenPlan){e.classList.add('hide');return}
+ e.classList.remove('hide');e.innerHTML='<b>Другата страна ('+esc(String(pi.side).toUpperCase())+') изпрати план.</b> <button class="btn pri" id="pi-ok">Приложи и изчисли</button> <button class="btn" id="pi-no">Отхвърли</button>';
+ $('#pi-no').onclick=()=>{seenPlan=pi.ts;e.classList.add('hide')};
+ $('#pi-ok').onclick=async()=>{seenPlan=pi.ts;e.classList.add('hide');const j=await api('/api/plan_in');if(j.ok){applyInputs(j.inputs);savePlanInputs();showTab('plan');setTimeout(calc,300)}}}
+
+/* ---------- тест на скоростта ---------- */
+$('#bt-go').onclick=async()=>{const body={address:$('#bt-addr').value.trim(),protocol:$('#bt-proto').value,direction:$('#bt-dir').value,duration:+$('#bt-dur').value||10,password:$('#bt-pass').value};
+ LS.set('af-bt-addr',body.address);const j=await api('/api/btest',body);$('#bt-msg').textContent=j.ok?'Стартиране...':j.error};
+$('#bt-stop').onclick=()=>api('/api/btest/stop',{});
+$('#bt-addr').value=LS.get('af-bt-addr','');
+const f1=x=>x==null?'--':x.toFixed(0);
+function renderBt(){const b=st.btest||{};if(!b.state||b.state==='idle')return;
+ $('#bt-tx').textContent=f1(b.tx_now)+' / '+f1(b.tx_avg);$('#bt-rx').textContent=f1(b.rx_now)+' / '+f1(b.rx_avg);
+ const m={running:'Тестът върви...',done:'Готово.',stopped:'Спрян.',error:'Грешка: '+(b.error||'')};$('#bt-msg').textContent=m[b.state]||'';
+ if(b.state==='done'&&b.started&&String(b.started)!==lastBt){lastBt=String(b.started);const h=LS.get('af-bt-hist',[]);
+  h.unshift({t:new Date().toLocaleString(LOCALE),addr:b.address,proto:b.protocol,dir:b.direction,tx:b.tx_avg,rx:b.rx_avg});LS.set('af-bt-hist',h.slice(0,10));renderBtHist()}}
+function renderBtHist(){const h=LS.get('af-bt-hist',[]);$('#bt-hist').innerHTML=h.length?'<b>Последни тестове:</b><br>'+h.map(x=>esc(x.t)+' - '+esc(x.addr)+' '+esc(x.proto)+'/'+esc(x.dir)+': изпращане '+f1(x.tx)+', приемане '+f1(x.rx)+' Mbps').join('<br>'):''}
+renderBtHist();
+async function poll(){try{const r=await fetch('/api/state');st=await r.json();render();renderScan()}catch(e){pill('#conn','Програмата не отговаря','bad')}setTimeout(poll,400)}
+
+/* ---------- търсене на антена ---------- */
+
+async function startScan(sel){scanTarget=sel;$(sel).textContent='Търся в мрежата...';const j=await api('/api/scan',{});if(!j.ok)$(sel).textContent=j.error}
+function renderScan(){const s=st.scan;if(!s||!scanTarget)return;const el=$(scanTarget);if(!el)return;
+ if(s.state==='running'){el.textContent='Търся в мрежите '+(s.nets||[]).map(n=>n+'.х').join(', ')+' ... '+s.done+'/'+s.total+(s.found.length?' - намерени: '+s.found.join(', '):'');return}
+ if(s.state==='done'){if(!s.found.length){el.innerHTML='Не е намерена антена с отворен API порт (8728). Мрежи на компютъра: '+esc((s.mine||[]).join(', ')||'не са открити')+'. Ако компютърът не е в мрежата на антената, настройте го от „Настройка на антената → Мрежа на компютъра“.'}
+  else el.innerHTML='Намерени: '+s.found.map(ip=>'<button class="btn" data-ip="'+esc(ip)+'" data-w="1">'+esc(ip)+' - основна</button> <button class="btn" data-ip="'+esc(ip)+'" data-w="2">втора</button>').join(' ');
+  el.querySelectorAll('button[data-ip]').forEach(b=>b.onclick=async()=>{const k=b.dataset.w==='2'?'router2':'router',body={};body[k+'_host']=b.dataset.ip;if(k==='router2')body.router2_enabled=true;
+   await api('/api/config',body);el.textContent='Адресът '+b.dataset.ip+' е записан. Въведете потребител и парола в „Настройки“.';if($('#t-set').classList.contains('hide')===false)loadCfg()});
+  scanTarget=null}}
+$('#st-scan').onclick=()=>startScan('#st-found');
+
+/* ---------- настройки ---------- */
+
+function roomChip(c){const e=$('#room-chip');if(c&&c.room){e.textContent='стая: '+c.room;e.className='pill'}else e.className='pill hide'}
+async function loadCfg(){const c=await api('/api/config');roomChip(c);
+ cfgEls().forEach(e=>{const k=e.dataset.k;if(e.type==='checkbox')e.checked=!!c[k];else if(k.endsWith('password')){e.value='';e.placeholder=c['has_'+k]?'(запазена)':''}else e.value=c[k]==null?'':c[k]});
+ if(!$('#bt-addr').value&&c.router2_host)$('#bt-addr').value=c.router2_host}
+$('#b-save').onclick=async()=>{const body={};
+ cfgEls().forEach(e=>{const k=e.dataset.k;body[k]=e.type==='checkbox'?e.checked:e.type==='number'?+e.value:e.value});
+ LS.set('af-snd',{v:$('#st-voice').value,lo:$('#st-flo').value,hi:$('#st-fhi').value});
+ const j=await api('/api/config',body);$('#save-msg').textContent=j.ok?'Запазено.':'Грешка при запис.';await loadCfg();cfgCache=await api('/api/config');roomChip(cfgCache)};
+const snd=LS.get('af-snd',null);if(snd){$('#st-voice').value=snd.v;$('#st-flo').value=snd.lo;$('#st-fhi').value=snd.hi}
+$('#b-room').onclick=()=>{document.querySelector('[data-k=room]').value=randPass(14)};
+$('#b-room-copy').onclick=()=>copyText(document.querySelector('[data-k=room]').value);
+async function testRouter(which,msg){const pre=which==='router2'?'router2_':'router_',g=k=>document.querySelector('[data-k='+pre+k+']'),el=$(msg);
+ el.textContent='Проверявам...';const j=await api('/api/test_router',{which:which,host:g('host').value.trim(),port:+g('port').value,user:g('user').value,password:g('password').value,ssl:g('ssl').checked});
+ el.innerHTML=j.ok?'<span class="ok">✓ Свързване успешно: '+esc(j.identity)+' · '+esc(j.board)+' · RouterOS '+esc(j.version)+'</span>':'<span class="badc">✗ '+esc(explain(j.kind,j.error))+'</span> <span class="note">('+esc(j.error)+')</span>'}
+$('#st-test1').onclick=()=>testRouter('router','#st-msg1');$('#st-test2').onclick=()=>testRouter('router2','#st-msg2');
+
+/* ---------- данни за моделите ---------- */
+const DEVICES=[
+{n:'Друго - въведете усилването',g:null,grp:'Друго'},
+{n:'SXTsq 5 ac / ax / Lite5 - 16 dBi',g:16,grp:'Насочени антени (точка-точка, CPE)'},
+{n:'LHG 5 / LHG 5 ac / HP5 - 24.5 dBi',g:24.5,grp:'Насочени антени (точка-точка, CPE)'},
+{n:'LHG XL 5 / XL HP5 - 27 dBi',g:27,grp:'Насочени антени (точка-точка, CPE)'},
+{n:'QRT 5 / QRT 5 ac - 24 dBi',g:24,grp:'Насочени антени (точка-точка, CPE)'},
+{n:'Disc Lite5 / Disc Lite5 ac - 21 dBi',g:21,grp:'Насочени антени (точка-точка, CPE)'},
+{n:'DynaDish 5 - 25 dBi',g:25,grp:'Насочени антени (точка-точка, CPE)'},
+{n:'SXTsq Lite2 (2.4 GHz) - 10 dBi',g:10,grp:'Насочени антени (точка-точка, CPE)'},
+{n:'LHG 2 (2.4 GHz) - 18 dBi',g:18,grp:'Насочени антени (точка-точка, CPE)'},
+{n:'mANTBox 15s - 15 dBi, сектор 120°',g:15,bw:120,grp:'Сектори и точки за достъп (AP)'},
+{n:'mANTBox 19s - 19 dBi, сектор 120°',g:19,bw:120,grp:'Сектори и точки за достъп (AP)'},
+{n:'mANTBox 52 15s - 15 dBi, сектор 120°',g:15,bw:120,grp:'Сектори и точки за достъп (AP)'},
+{n:'Сектор 90° - 17 dBi (друг)',g:17,bw:90,grp:'Сектори и точки за достъп (AP)'},
+{n:'Сектор 120° - 15 dBi (друг)',g:15,bw:120,grp:'Сектори и точки за достъп (AP)'},
+{n:'Всепосочна антена - 8 dBi (външна)',g:8,bw:360,grp:'Сектори и точки за достъп (AP)'},
+{n:'cAP ax, 5 GHz - ~5.5 dBi',g:5.5,bw:360,grp:'Вътрешни и малки AP (всепосочни)'},
+{n:'cAP ax, 2.4 GHz - ~4 dBi',g:4,bw:360,grp:'Вътрешни и малки AP (всепосочни)'},
+{n:'wAP ac - ~2.5 dBi',g:2.5,bw:360,grp:'Вътрешни и малки AP (всепосочни)'}];
+['a','b'].forEach(s=>{const sel=$('#'+s+'-dev');let h='',g=null;DEVICES.forEach((d,i)=>{if(d.grp!==g){if(g!==null)h+='</optgroup>';h+='<optgroup label="'+esc(d.grp)+'">';g=d.grp}h+='<option value="'+i+'">'+esc(d.n)+'</option>'});sel.innerHTML=h+'</optgroup>';sel.value='1';
+ sel.onchange=()=>{const d=DEVICES[+sel.value];if(d.g!=null)$('#'+s+'-gain').value=d.g;$('#'+s+'-beam').placeholder=d.bw?d.bw+' (от модела)':'авто'}});
+const devBw=s=>{const d=DEVICES[+$('#'+s+'-dev').value];return d&&d.bw?d.bw:null};
+const MCS=[[6.5,-94],[13,-92],[19.5,-90],[26,-87],[39,-83],[52,-79],[58.5,-77],[65,-75],[78,-71],[86.7,-69]];
+function speedEst(rx,w){const pen=10*Math.log10(w/20),sc={20:1,40:2.077,80:4.5}[w]||1;let best=-1;MCS.forEach((m,i)=>{if(rx>=m[1]+pen+6)best=i});
+ return best<0?null:{mcs:best,phy:MCS[best][0]*sc*2,real:MCS[best][0]*sc*2*0.6}}
+function regInfo(f,eirp){let lim=null,t='';
+ if(f>=2400&&f<=2483.5){lim=20;t='2.4 GHz: до 20 dBm EIRP (ЕС).'}
+ else if(f>=5150&&f<5250){lim=23;t='5150-5250 MHz: до 23 dBm EIRP, само на закрито.'}
+ else if(f>=5250&&f<=5350){lim=23;t='5250-5350 MHz: до 23 dBm EIRP, DFS и TPC.'}
+ else if(f>=5470&&f<=5725){lim=30;t='5470-5725 MHz: до 30 dBm EIRP, DFS и TPC (ЕС).'}
+ else if(f>=5725&&f<=5875){lim=14;t='5725-5875 MHz: до 14 dBm EIRP (SRD) - проверете местните правила.'}
+ const dfs=(f>=5250&&f<=5725);let d='';if(dfs){d='Честотата е с DFS: точката за достъп изчаква 1 минута преди да излъчва'+(f>=5590&&f<=5660?' (в диапазона 5600-5650 MHz - 10 минути)':'')+'.'}
+ return{t:t,d:d,over:lim!=null&&eirp>lim,lim:lim}}
+
+/* ---------- план на връзката ---------- */
+const R=6371000,rad=x=>x*Math.PI/180,deg=x=>x*180/Math.PI;
+function parseLL(s){const m=String(s).match(/(-?\d{1,3}\.\d+)\s*[,; ]\s*(-?\d{1,3}\.\d+)/);return m?{lat:+m[1],lon:+m[2]}:null}
+function dist(a,b){const dl=rad(b.lat-a.lat),dn=rad(b.lon-a.lon),h=Math.sin(dl/2)**2+Math.cos(rad(a.lat))*Math.cos(rad(b.lat))*Math.sin(dn/2)**2;return 2*R*Math.asin(Math.sqrt(h))}
+function bearing(a,b){const y=Math.sin(rad(b.lon-a.lon))*Math.cos(rad(b.lat)),x=Math.cos(rad(a.lat))*Math.sin(rad(b.lat))-Math.sin(rad(a.lat))*Math.cos(rad(b.lat))*Math.cos(rad(b.lon-a.lon));return (deg(Math.atan2(y,x))+360)%360}
+function lerp(a,b,t){return{lat:a.lat+(b.lat-a.lat)*t,lon:a.lon+(b.lon-a.lon)*t}}
+function dest(p,az,dm){const d=dm/R,a=rad(az),l1=rad(p.lat),n1=rad(p.lon),l2=Math.asin(Math.sin(l1)*Math.cos(d)+Math.cos(l1)*Math.sin(d)*Math.cos(a)),n2=n1+Math.atan2(Math.sin(a)*Math.sin(d)*Math.cos(l1),Math.cos(d)-Math.sin(l1)*Math.sin(l2));return{lat:deg(l2),lon:((deg(n2)+540)%360)-180}}
+const beamFor=g=>Math.min(120,Math.max(3,Math.sqrt(27000/Math.pow(10,g/10))));
+const V=id=>+$('#'+id).value;
+async function elevations(pts){const u='https://api.open-meteo.com/v1/elevation?latitude='+pts.map(p=>p.lat.toFixed(5)).join(',')+'&longitude='+pts.map(p=>p.lon.toFixed(5)).join(',');
+ const r=await fetch(u);if(!r.ok)throw new Error('Open-Meteo: '+r.status);const j=await r.json();return j.elevation}
+const SENS={0:-94,7:-77,9:-71};
+$('#b-calc').onclick=calc;$('#b-relief').onclick=calc;
+$('#plan-send').onclick=async()=>{savePlanInputs();const j=await api('/api/plan/send',{inputs:snapInputs()});$('#plan-send-msg').textContent=j.ok?'Изпратено.':j.error};
+async function calc(){
+ const A=parseLL($('#a-ll').value),B=parseLL($('#b-ll').value),msg=$('#calc-msg');
+ if(!A||!B){msg.textContent='Невалидни координати. Пример: 41.8485, 23.1117';return}
+ if(A.lat===B.lat&&A.lon===B.lon){msg.textContent='Точките съвпадат.';return}
+ savePlanInputs();msg.textContent='';
+ if($('#decl-auto').checked){const mid=lerp(A,B,.5);const j=await api('/api/declination?lat='+mid.lat+'&lon='+mid.lon);
+  if(j&&j.declination!=null){$('#decl').value=j.declination;if(!j.valid)msg.textContent='Моделът WMM2025 е валиден до 2030 г. - проверете отклонението. '}else msg.textContent='Отклонението не може да се изчисли. '}
+ const D=dist(A,B),N=80,pts=[];for(let i=0;i<N;i++)pts.push(lerp(A,B,i/(N-1)));
+ let el,flat=false;try{el=await elevations(pts)}catch(e){msg.textContent+='Релефът не е наличен ('+e.message+') - профилът е без релеф. ';el=pts.map(()=>0);flat=true}
+ const auto0=el[0],autoN=el[N-1];$('#a-elev').placeholder=Math.round(auto0)+' (авто)';$('#b-elev').placeholder=Math.round(autoN)+' (авто)';
+ if($('#a-elev').value!=='')el[0]=+$('#a-elev').value;if($('#b-elev').value!=='')el[N-1]=+$('#b-elev').value;
+ const f=V('freq')/1000,k=V('kf')||1.33,cl=V('clutter'),Dkm=D/1000,hA=el[0]+V('a-mast'),hB=el[N-1]+V('b-mast');
+ let worst={r:1e9,i:0,d:0};const prof=[];
+ for(let i=0;i<N;i++){const d=D*i/(N-1),d1=d/1000,d2=Dkm-d1,bulge=d*(D-d)/(2*k*R),ends=(i<3||i>N-4),terr=el[i]+bulge+(ends?0:cl),
+  los=hA+(hB-hA)*i/(N-1),F=17.32*Math.sqrt(Math.max(d1*d2,0)/(f*Dkm)),clr=los-terr;
+  prof.push({d,terr,base:el[i]+bulge,los,F,clr,lat:pts[i].lat,lon:pts[i].lon,el:el[i]});if(F>0.5&&clr/F<worst.r)worst={r:clr/F,i:i,d:d}}
+ const az=bearing(A,B),azb=bearing(B,A),dc=V('decl'),mag=a=>(a-dc+360)%360,tiltA=deg(Math.atan((hB-hA)/D));
+ const fspl=32.44+20*Math.log10(V('freq'))+20*Math.log10(Dkm),loss=V('loss'),gA=V('a-gain'),gB=V('b-gain');
+ const rxB=V('a-tx')+gA+gB-fspl-loss,rxA=V('b-tx')+gA+gB-fspl-loss,w=V('width'),pen=10*Math.log10(w/20);
+ PLAN={A:A,B:B,D:D,az:az,azb:azb,decl:dc,magA:mag(az),magB:mag(azb),tiltA:tiltA,fspl:fspl,rxA:rxA,rxB:rxB,worstR:worst.r,worstD:worst.d,worstAt:prof[worst.i],
+  freq:V('freq'),width:w,hA:hA,hB:hB,mastA:V('a-mast'),mastB:V('b-mast'),flat:flat,prof:prof,at:new Date().toLocaleString(LOCALE),
+  marginA:{m0:rxA-(SENS[0]+pen),m7:rxA-(SENS[7]+pen)},marginB:{m0:rxB-(SENS[0]+pen),m7:rxB-(SENS[7]+pen)},beamA:+$('#a-beam').value||devBw('a')||beamFor(gA),beamB:+$('#b-beam').value||devBw('b')||beamFor(gB)};
+ PLAN.nameA=$('#a-name').value||'A';PLAN.nameB=$('#b-name').value||'B';PLAN.gA=gA;PLAN.gB=gB;PLAN.eirpA=V('a-tx')+gA;PLAN.eirpB=V('b-tx')+gB;PLAN.k=k;
+ PLAN.fMid=Math.max.apply(null,prof.map(x=>x.F));PLAN.bMid=(D/2)*(D/2)/(2*k*R);PLAN.spA=speedEst(rxA,w);PLAN.spB=speedEst(rxB,w);PLAN.elA=el[0];PLAN.elB=el[N-1];PLAN.clutter=cl;
+ LS.set('af-plan-result',Object.assign({},PLAN,{prof:[]}));renderPlan();drawProfile();mapUpdate();renderTarget();renderGuide()}
+function verdictPlan(r){return r>=1?['чисто','var(--g)']:r>=0.6?['приемливо (над 60% от зоната на Френел)','var(--y)']:r>0?['частично затъмнение на зоната на Френел','var(--o)']:['няма пряка видимост','var(--r)']}
+const tiltTxt=a=>a>=0?a.toFixed(2)+'° нагоре':(-a).toFixed(2)+'° надолу';
+function renderPlan(){const P=PLAN;if(!P)return;const v=verdictPlan(P.worstR),pct=Math.round(P.worstR*100),reg=regInfo(P.freq,Math.max(P.eirpA,P.eirpB));
+ const sp=s=>s?'MCS'+s.mcs+', до ≈'+Math.round(s.phy)+' Mbps по канала (реално ≈'+Math.round(s.real)+' Mbps)':'под прага на MCS0 - връзката няма да се вдигне';
+ const acc=bw=>bw>=90?'лъчът е широк - точната посока е без значение':'насочете с точност ±'+(bw*0.289).toFixed(1)+'° (под 1 dB загуба)';
+ const side=(L,nm,col,az,mag,tilt,el,mast,rx,bw,gain,tx)=>'<div class="card" style="border-top:3px solid '+col+';margin:0"><h3>'+L+' '+(L==='A'?'→ '+esc(P.nameB):'→ '+esc(P.nameA))+' <span class="note">('+esc(nm)+')</span></h3>'+
+  '<div class="mid">'+az.toFixed(1)+'°</div><div class="note">азимут спрямо географския север</div>'+
+  '<table><tr><td>По компас</td><td><b>'+mag.toFixed(1)+'°</b> <span class="note">(декл. '+P.decl.toFixed(1)+'° '+(P.decl>=0?'изток':'запад')+')</span></td></tr>'+
+  '<tr><td>Наклон</td><td><b>'+tiltTxt(tilt)+'</b></td></tr>'+
+  '<tr><td>Антена</td><td>'+Math.round(el)+' m терен + '+mast.toFixed(1)+' m = <b>'+Math.round(el+mast)+' m н.в.</b></td></tr>'+
+  '<tr><td>Очакван сигнал тук</td><td><b style="color:var(--o)">'+f0(rx)+' dBm</b> <span class="note">±3 dB</span></td></tr>'+
+  '<tr><td>Ширина на лъча</td><td>≈'+Math.round(bw)+'° → '+acc(bw)+'</td></tr></table></div>';
+ $('#res').innerHTML='<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(250px,1fr))">'+
+ '<div class="card" style="margin:0"><h3>Трасе</h3><div class="mid">'+(P.D/1000).toFixed(2)+' km</div>'+
+ '<table><tr><td>Видимост</td><td><b style="color:'+v[1]+'">'+v[0]+' ('+pct+'%)</b></td></tr>'+
+ '<tr><td>Зона на Френел</td><td>радиус '+P.fMid.toFixed(1)+' m в средата; 60% = '+(P.fMid*0.6).toFixed(1)+' m</td></tr>'+
+ '<tr><td>Кривина на Земята</td><td>'+P.bMid.toFixed(1)+' m в средата (k='+P.k+')</td></tr>'+
+ (P.clutter?'<tr><td>Дървета/сгради</td><td>'+P.clutter+' m по трасето</td></tr>':'')+'</table>'+
+ '<p class="note">Най-тясното място е на '+Math.round(P.worstD)+' m от A: свободни са '+pct+'% от зоната на Френел (нужни са поне 60%).'+(P.flat?' <b class="badc">Профилът е без релеф - видимостта не е надеждна.</b>':'')+'</p></div>'+
+ side('A',P.nameA,'#1f6feb',P.az,P.magA,P.tiltA,P.elA,P.mastA,P.rxA,P.beamA,P.gA)+
+ side('B',P.nameB,'#c2410c',P.azb,P.magB,-P.tiltA,P.elB,P.mastB,P.rxB,P.beamB,P.gB)+
+ '<div class="card" style="margin:0"><h3>Сигнал и скорост</h3><table>'+
+ '<tr><td>Загуба в пространството</td><td>'+P.fspl.toFixed(1)+' dB при '+P.freq+' MHz</td></tr>'+
+ '<tr><td>Очакван при A / при B</td><td><b style="color:var(--o)">'+f0(P.rxA)+' / '+f0(P.rxB)+' dBm</b> <span class="note">±3 dB</span></td></tr>'+
+ '<tr><td>EIRP</td><td>A: '+P.eirpA.toFixed(1)+' dBm · B: '+P.eirpB.toFixed(1)+' dBm</td></tr>'+
+ '<tr><td>Скорост при A</td><td>'+sp(P.spA)+'</td></tr><tr><td>Скорост при B</td><td>'+sp(P.spB)+'</td></tr></table>'+
+ (reg.t?'<p class="note'+(reg.over?'" style="color:var(--r)':'')+'">'+esc(reg.t)+(reg.over?' <b>EIRP надвишава ограничението ('+reg.lim+' dBm) - намалете мощността.</b>':'')+'</p>':'')+
+ (reg.d?'<p class="note">'+esc(reg.d)+'</p>':'')+
+ '<p class="note">Ориентировъчно: при правилно насочване измереният сигнал обикновено е в рамките на ±3-5 dB от очаквания. Скоростта е груба оценка за 2 потока (2x2) със запас 6 dB.</p></div></div>'}
+function drawProfile(){if(!PLAN||!PLAN.prof.length)return;const prof=PLAN.prof,D=PLAN.D,cv=$('#cv'),g=cv.getContext('2d'),W=cv.width,H=cv.height,P=34;g.clearRect(0,0,W,H);
+ let lo=1e9,hi=-1e9;prof.forEach(p=>{lo=Math.min(lo,p.terr);hi=Math.max(hi,p.terr,p.los+p.F)});const span=Math.max(hi-lo,10);lo-=span*.05;hi+=span*.05;
+ const X=d=>P+(W-2*P)*d/D,Y=h=>H-P-(H-2*P)*(h-lo)/(hi-lo),css=getComputedStyle(document.body);
+ g.fillStyle='rgba(31,111,235,.13)';g.beginPath();prof.forEach((p,i)=>{const y=Y(p.los+p.F);i?g.lineTo(X(p.d),y):g.moveTo(X(p.d),y)});for(let i=prof.length-1;i>=0;i--)g.lineTo(X(prof[i].d),Y(prof[i].los-prof[i].F));g.closePath();g.fill();
+ g.fillStyle='#cdb892';g.beginPath();g.moveTo(X(0),H-P);prof.forEach(p=>g.lineTo(X(p.d),Y(p.base!=null?p.base:p.terr)));g.lineTo(X(D),H-P);g.closePath();g.fill();
+ if(PLAN.clutter>0){g.fillStyle='rgba(59,154,74,.75)';g.beginPath();prof.forEach((p,i)=>{const y=Y(p.terr);i?g.lineTo(X(p.d),y):g.moveTo(X(p.d),y)});for(let i=prof.length-1;i>=0;i--)g.lineTo(X(prof[i].d),Y(prof[i].base));g.closePath();g.fill()}
+ g.strokeStyle='#1f6feb';g.lineWidth=2;g.beginPath();prof.forEach((p,i)=>i?g.lineTo(X(p.d),Y(p.los)):g.moveTo(X(p.d),Y(p.los)));g.stroke();
+ g.setLineDash([6,4]);g.lineWidth=1;g.strokeStyle='#c2410c';[-0.6,0.6].forEach(s=>{g.beginPath();prof.forEach((p,i)=>{const y=Y(p.los+s*p.F);i?g.lineTo(X(p.d),y):g.moveTo(X(p.d),y)});g.stroke()});g.setLineDash([]);
+ g.fillStyle=css.color;g.font='13px sans-serif';g.fillText(PLAN.nameA||'A',X(0)+4,16);g.fillText(PLAN.nameB||'B',X(D)-24,16);
+ [[0,prof[0].los,'#1f6feb'],[D,prof[prof.length-1].los,'#c2410c']].forEach(m=>{g.fillStyle=m[2];g.beginPath();g.arc(X(m[0]),Y(m[1]),5,0,7);g.fill()});g.fillStyle=css.color;
+ for(let k=1;k<D/1000;k++){const x=X(k*1000);g.fillText(k+' km',x-14,H-P+14);g.strokeStyle=css.getPropertyValue('--bd');g.beginPath();g.moveTo(x,H-P);g.lineTo(x,H-P+4);g.stroke()}g.fillText(Math.round(lo)+' m',4,H-P+14);g.fillText(Math.round(hi)+' m',4,P);g.fillText((D/1000).toFixed(2)+' km',W/2-20,H-8);
+ cv._geo={X,Y,P,W,D,prof}}
+$('#cv').addEventListener('mousemove',e=>{const cv=$('#cv'),G=cv._geo;if(!G)return;const r=cv.getBoundingClientRect(),x=(e.clientX-r.left)*cv.width/r.width,d=(x-G.P)/(G.W-2*G.P)*G.D;
+ if(d<0||d>G.D){$('#tip').classList.add('hide');return}let b=G.prof[0];G.prof.forEach(p=>{if(Math.abs(p.d-d)<Math.abs(b.d-d))b=p});
+ const t=$('#tip');t.classList.remove('hide');t.style.left=(e.clientX+12)+'px';t.style.top=(e.clientY+12)+'px';
+ t.textContent=(b.d/1000).toFixed(2)+' km · терен '+Math.round(b.el)+' m · линия '+Math.round(b.los)+' m · свободно '+Math.round(b.clr/Math.max(b.F,.1)*100)+'% от зоната'});
+$('#cv').addEventListener('mouseleave',()=>$('#tip').classList.add('hide'));
+
+/* ---------- карта ---------- */
+
+const pinIcon=(l,c)=>L.divIcon({className:'',html:'<div class="pin" style="background:'+c+'"><span>'+l+'</span></div>',iconSize:[28,28],iconAnchor:[14,28]});
+function initMap(){if(!window.L){$('#map').innerHTML='<div class="note" style="padding:20px">Библиотеката за карта не се зареди.</div>';return}
+ if(map){map.invalidateSize();return}
+ try{$('#map').innerHTML='';map=L.map('map').setView([42.7,25.3],7);
+  lay.osm=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'});
+  lay.topo=L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',{maxZoom:17,subdomains:'abc',attribution:'© OpenStreetMap, SRTM | © OpenTopoMap (CC-BY-SA)'});
+  lay.sat=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:18,attribution:'Imagery © Esri'});
+  lay.cur=lay.osm;lay.osm.addTo(map);L.control.scale({metric:true,imperial:false}).addTo(map);
+  map.on('click',e=>setPoint(pick,e.latlng.lat,e.latlng.lng));
+  mapMarkers(true)}catch(e){$('#map').innerHTML='<div class="note" style="padding:20px">Картата не може да се покаже: '+esc(e.message)+'</div>'}}
+function mapMarkers(fit){if(!map)return;const pts={a:parseLL($('#a-ll').value),b:parseLL($('#b-ll').value)},col={a:'#1f6feb',b:'#c2410c'};
+ ['a','b'].forEach(s=>{const p=pts[s];if(!p){if(mk[s]){map.removeLayer(mk[s]);mk[s]=null}return}
+  if(!mk[s]){mk[s]=L.marker([p.lat,p.lon],{draggable:true,icon:pinIcon(s.toUpperCase(),col[s])}).addTo(map);mk[s].on('dragend',()=>{const q=mk[s].getLatLng();setPoint(s,q.lat,q.lng,true)})}else mk[s].setLatLng([p.lat,p.lon])});
+ if(lineL){map.removeLayer(lineL);lineL=null}if(pts.a&&pts.b)lineL=L.polyline([[pts.a.lat,pts.a.lon],[pts.b.lat,pts.b.lon]],{color:'#555',weight:2,dashArray:'6 6'}).addTo(map).bindTooltip((dist(pts.a,pts.b)/1000).toFixed(2)+' km',{permanent:true,direction:'center'});
+ if(fit&&pts.a&&pts.b)map.fitBounds([[pts.a.lat,pts.a.lon],[pts.b.lat,pts.b.lon]],{padding:[40,40]})}
+function mapUpdate(){if(!map)return;mapMarkers(false);const P=PLAN;if(!P)return;
+ ['a','b'].forEach(s=>{if(beams[s]){map.removeLayer(beams[s]);beams[s]=null}});
+ const mk2=(p,az,beam,c)=>{const pts=[[p.lat,p.lon]];for(let i=0;i<=12;i++){const q=dest(p,az-beam/2+beam*i/12,Math.min(P.D*0.6,3000));pts.push([q.lat,q.lon])}return L.polygon(pts,{color:c,weight:1,fillOpacity:.18}).addTo(map)};
+ beams.a=mk2(P.A,P.az,P.beamA,'#1f6feb');beams.b=mk2(P.B,P.azb,P.beamB,'#c2410c');
+ if(worstM){map.removeLayer(worstM);worstM=null}if(P.worstAt)worstM=L.circleMarker([P.worstAt.lat,P.worstAt.lon],{radius:7,color:'#c42b2b',fillOpacity:.6}).addTo(map).bindTooltip('Най-тясно място ('+Math.round(P.worstR*100)+'% свободно)')}
+function setPoint(w,lat,lon,fromDrag){$('#'+w+'-ll').value=lat.toFixed(6)+', '+lon.toFixed(6);if(!fromDrag)mapMarkers(false);else mapMarkers(false)}
+function selectPick(s){pick=s;$$('#pick-seg button').forEach(x=>x.classList.toggle('on',x.dataset.p===s))}
+$$('#pick-seg button').forEach(b=>b.onclick=()=>selectPick(b.dataset.p));
+$$('[data-pickbtn]').forEach(b=>b.onclick=()=>{selectPick(b.dataset.pickbtn);$('#map').scrollIntoView({behavior:'smooth',block:'center'});$('#map-note').innerHTML='<b>Щракнете върху картата, за да зададете точка '+b.dataset.pickbtn.toUpperCase()+'.</b>'});
+$$('[data-herebtn]').forEach(b=>b.onclick=()=>{selectPick(b.dataset.herebtn);$('#b-loc').click()});
+$$('#lay-seg button').forEach(b=>b.onclick=()=>{if(!map)return;map.removeLayer(lay.cur);lay.cur=lay[b.dataset.l];lay.cur.addTo(map);$$('#lay-seg button').forEach(x=>x.classList.toggle('on',x===b))});
+$('#b-fit').onclick=()=>mapMarkers(true);
+$('#b-loc').onclick=()=>{if(!navigator.geolocation){alert('Устройството не поддържа определяне на местоположение.');return}
+ navigator.geolocation.getCurrentPosition(p=>{setPoint(pick,p.coords.latitude,p.coords.longitude);if(map)map.setView([p.coords.latitude,p.coords.longitude],15)},e=>alert('Местоположението не е достъпно: '+e.message),{enableHighAccuracy:true,timeout:15000})};
+['a-ll','b-ll'].forEach(id=>$('#'+id).addEventListener('change',()=>mapMarkers(true)));
+
+/* ---------- запазване на въведеното и проекти ---------- */
+const PLAN_IDS=['a-ll','a-mast','a-dev','a-gain','a-tx','a-beam','b-ll','b-mast','b-dev','b-gain','b-tx','b-beam','freq','width','loss','clutter','kf','decl','decl-auto','a-name','a-elev','b-name','b-elev'];
+const snapInputs=()=>PLAN_IDS.map(i=>{const e=$('#'+i);return e.type==='checkbox'?e.checked:e.value});
+function applyInputs(a){PLAN_IDS.forEach((i,n)=>{const e=$('#'+i);if(a[n]==null)return;if(e.type==='checkbox')e.checked=!!a[n];else e.value=a[n]});mapMarkers(true)}
+function savePlanInputs(){LS.set('af-plan-inputs',snapInputs())}
+const si=LS.get('af-plan-inputs',null);if(si)applyInputs(si);
+function renderProjects(sel){const pr=LS.get('af-projects',{});$('#proj-list').innerHTML=Object.keys(pr).map(n=>'<option>'+esc(n)+'</option>').join('');if(sel)$('#proj-list').value=sel}
+$('#proj-save').onclick=()=>{const n=$('#proj-name').value.trim();if(!n){alert('Въведете име на проекта.');return}const pr=LS.get('af-projects',{});pr[n]=snapInputs();LS.set('af-projects',pr);renderProjects(n)};
+$('#proj-load').onclick=()=>{const pr=LS.get('af-projects',{}),n=$('#proj-list').value;if(pr[n]){applyInputs(pr[n]);$('#proj-name').value=n}};
+$('#proj-del').onclick=()=>{const pr=LS.get('af-projects',{}),n=$('#proj-list').value;if(n&&confirm('Да изтрия ли „'+n+'“?')){delete pr[n];LS.set('af-projects',pr);renderProjects()}};
+$('#proj-exp').onclick=()=>download('alignfree-proekti.json',JSON.stringify({v:1,ids:PLAN_IDS,projects:LS.get('af-projects',{})},null,1),'application/json');
+$('#proj-imp').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const j=JSON.parse(r.result),pr=LS.get('af-projects',{});Object.assign(pr,j.projects||{});LS.set('af-projects',pr);renderProjects()}catch(x){alert('Невалиден файл.')}};r.readAsText(f);e.target.value=''};
+renderProjects();
+
+/* ---------- настройка на антената ---------- */
+function bandOptions(){const wifi=$('#lk-pkg').value==='wifi',o=wifi?['5ghz-ax','5ghz-ac','5ghz-n','2ghz-ax','2ghz-n']:['5ghz-a/n/ac','5ghz-onlyn','5ghz-n/ac','2ghz-b/g/n','2ghz-onlyn'];
+ $('#lk-band').innerHTML=o.map(x=>'<option>'+esc(x)+'</option>').join('');$('#lk-if').value=wifi?'wifi1':'wlan1'}
+$('#lk-pkg').onchange=bandOptions;bandOptions();
+$('#su-read').onclick=async()=>{$('#su-msg').textContent='Чета...';const j=await api('/api/router_info?target='+$('#su-target').value);
+ if(!j.ok){$('#su-msg').innerHTML='<span class="badc">✗ '+esc(explain(j.kind,j.error))+'</span>';$('#su-info').innerHTML='';return}
+ $('#su-msg').textContent='';const i=j.info;
+ $('#su-info').innerHTML='<table><tr><td>Име</td><td><b>'+esc(i.identity)+'</b></td><td>Платка</td><td>'+esc(i.board)+' '+esc(i.model)+'</td></tr><tr><td>RouterOS</td><td>'+esc(i.version)+'</td><td>Време на работа / процесор</td><td>'+esc(i.uptime)+' / '+esc(i.cpu)+'%</td></tr></table>'+
+ '<h4>Безжични интерфейси ('+esc(i.pkg||'не са намерени')+')</h4><table><tr><th>Име</th><th>Режим</th><th>SSID</th><th>Честота</th><th>Ширина</th><th>Обхват</th><th>Състояние</th></tr>'+
+ i.interfaces.map(x=>'<tr><td>'+esc(x.name)+'</td><td>'+esc(x.mode)+'</td><td>'+esc(x.ssid)+'</td><td>'+esc(x.frequency)+'</td><td>'+esc(x.width)+'</td><td>'+esc(x.band)+'</td><td>'+(x.disabled==='true'?'изключен':x.running==='true'?'работи':'неактивен')+'</td></tr>').join('')+'</table>'+
+ '<h4>IP адреси</h4>'+(i.addresses.length?i.addresses.map(a=>esc(a.address)+' <span class="note">('+esc(a.interface)+')</span>').join('<br>'):'<span class="note">няма</span>');
+ if(i.pkg){$('#lk-pkg').value=i.pkg;bandOptions()}if(i.interfaces.length){$('#lk-if').value=i.interfaces[0].name;$('#lk-iflist').innerHTML=i.interfaces.map(x=>'<option value="'+esc(x.name)+'">').join('')}}
+$('#pr-gen').onclick=()=>{$('#pr-pass').value=randPass(14)};$('#lk-gen').onclick=()=>{$('#lk-pass').value=randPass(14)};
+const prParams=()=>({user:$('#pr-user').value.trim(),password:$('#pr-pass').value,allow:$('#pr-allow').value.trim(),bwserver:$('#pr-bw').checked});
+const lkParams=()=>({pkg:$('#lk-pkg').value,role:$('#lk-role').value,iface:$('#lk-if').value.trim(),ssid:$('#lk-ssid').value,passphrase:$('#lk-pass').value,band:$('#lk-band').value,frequency:$('#lk-freq').value,width:$('#lk-width').value,country:$('#lk-country').value.trim(),nv2:$('#lk-nv2').checked,identity:$('#lk-ident').value.trim(),ip:$('#lk-ip').value.trim(),gateway:$('#lk-gw').value.trim(),eth:$('#lk-eth').value.trim(),clean:$('#lk-clean').checked});
+$('#lk-show').onclick=()=>{const i=$('#lk-pass');i.type=i.type==='password'?'text':'password';$('#lk-show').textContent=i.type==='password'?'Покажи':'Скрий'};
+function syncRole(){const ap=mySide==='a';if($('#lk-role').dataset.touched!=='1')$('#lk-role').value=ap?'ap':'client';roleDefaults()}
+function roleDefaults(){const ap=$('#lk-role').value==='ap';if(/^[AB]-ptp$/.test($('#lk-ident').value))$('#lk-ident').value=ap?'A-ptp':'B-ptp';if(/^192\.168\.88\.[23]\/24$/.test($('#lk-ip').value))$('#lk-ip').value=ap?'192.168.88.2/24':'192.168.88.3/24'}
+$('#lk-role').onchange=()=>{$('#lk-role').dataset.touched='1';roleDefaults()};
+async function preview(kind,params,out){const j=await api('/api/setup/preview',{kind:kind,params:params});$(out).value=j.ok?j.commands.join('\n'):'Грешка: '+j.error;return j.ok}
+$('#pr-prev').onclick=()=>preview('prepare',prParams(),'#pr-out');$('#lk-prev').onclick=()=>preview('link',lkParams(),'#lk-out');
+function showResults(sel,j){$(sel).innerHTML=j.results?j.results.map(r=>'<div class="'+(r.ok?'ok':'badc')+'">'+(r.ok?'✓ ':'✗ ')+esc(r.cli)+(r.error?' - '+esc(r.error):'')+(r.note?' <span class="note">('+esc(r.note)+')</span>':'')+'</div>').join('')+(j.ok?'<div class="ok"><b>Готово.</b> Ако връзката е прекъснала, изчакайте минута и проверете в „Насочване“ (при смяна на IP - изберете антената отново от списъка).</div>':''):'<div class="badc">✗ '+esc(explain(j.kind,j.error))+'</div>'}
+$('#pr-apply').onclick=async()=>{if(!await preview('prepare',prParams(),'#pr-out'))return;if(!confirm('Да изпълня ли тези команди върху '+($('#su-target').value==='far'?'втората':'основната')+' антена?'))return;
+ const j=await api('/api/setup/apply',{kind:'prepare',params:prParams(),confirm:true,target:$('#su-target').value});showResults('#pr-res',j)};
+$('#pr-save').onclick=async()=>{const p=prParams(),far=$('#su-target').value==='far',b={};b[(far?'router2':'router')+'_user']=p.user;b[(far?'router2':'router')+'_password']=p.password;
+ const j=await api('/api/config',b);$('#pr-res').innerHTML=j.ok?'<div class="ok">✓ Новият потребител е записан в настройките на програмата.</div>':'<div class="badc">✗ Грешка при запис.</div>'};
+$('#lk-fill').onclick=()=>{$('#lk-freq').value=$('#freq').value;$('#lk-width').value=$('#width').value};
+$('#lk-copy').onclick=()=>copyText($('#lk-out').value);
+$('#lk-backup').onclick=async()=>{const j=await api('/api/setup/backup',{target:$('#su-target').value});
+ $('#lk-res').innerHTML=j.ok?'<div class="ok">✓ Копието е записано в антената: '+esc(j.name)+'.backup'+(j.export?' и '+esc(j.name)+'.rsc':'')+' (Files в Winbox).</div>':'<div class="badc">✗ '+esc(explain(j.kind,j.error))+'</div>'};
+$('#lk-apply').onclick=async()=>{if(!$('#lk-ok').checked){alert('Отбележете потвърждението под командите.');return}if(!await preview('link',lkParams(),'#lk-out'))return;
+ if(!confirm('Промяната може да прекъсне връзката. Да продължа ли?'))return;
+ const j=await api('/api/setup/apply',{kind:'link',params:lkParams(),confirm:true,backup:$('#lk-bk').checked,target:$('#su-target').value});showResults('#lk-res',j)};
+$('#nt-load').onclick=async()=>{const j=await api('/api/netsh/adapters');if(!j.ok){$('#nt-msg').textContent=j.error;return}$('#nt-list').innerHTML=j.adapters.map(a=>'<option value="'+esc(a)+'">').join('');$('#nt-msg').textContent='Намерени: '+j.adapters.join(', ')};
+async function ntSet(dhcp){const j=await api('/api/netsh/set',{name:$('#nt-name').value.trim(),ip:$('#nt-ip').value.trim(),mask:$('#nt-mask').value.trim(),gateway:$('#nt-gw').value.trim(),dhcp:dhcp});
+ $('#nt-msg').innerHTML=j.ok?'<span class="ok">✓ Готово ('+esc(j.command)+')</span>':'<span class="badc">✗ '+esc(j.error)+'</span>'}
+$('#nt-set').onclick=()=>{if($('#nt-name').value.trim()&&confirm('Да сменя ли IP адреса на този компютър? Windows ще поиска потвърждение.'))ntSet(false)};
+$('#nt-dhcp').onclick=()=>{if($('#nt-name').value.trim()&&confirm('Да върна ли автоматичния IP адрес?'))ntSet(true)};
+const CMDS=[['Включване на API услугата','/ip service set api disabled=no'],['Име на устройството','/system identity set name=AP1-HOME'],
+ ['IP адрес на управление (сменете интерфейса)','/ip address add address=192.168.88.1/24 interface=bridge'],['Bandwidth-server (за теста на скоростта)','/tool bandwidth-server set enabled=yes authenticate=yes'],
+ ['Показване на свързаните устройства (wifi)','/interface wifi registration-table print'],['Показване на свързаните устройства (wireless)','/interface wireless registration-table print'],
+ ['Резервно копие','/system backup save name=pred-promyana'],['Изключване на ненужни услуги','/ip service disable telnet,ftp,www']];
+$('#cmds').innerHTML=CMDS.map((c,i)=>'<div style="margin:6px 0"><div class="note">'+esc(c[0])+'</div><div style="display:flex;gap:6px"><code style="flex:1;padding:6px">'+esc(c[1])+'</code><button class="btn" data-c="'+i+'">Копирай</button></div></div>').join('');
+$$('#cmds button').forEach(b=>b.onclick=()=>copyText(CMDS[+b.dataset.c][1]));
+
+/* ---------- отчет ---------- */
+
+function renderPoints(){const p=LS.get('af-points',[]);$('#pts').innerHTML=p.length?'<table><tr><th>Време</th><th>Страна</th><th>Име</th><th>Тук, dBm</th><th>Другата, dBm</th><th>Пик</th><th>Азимут</th><th>Наклон</th></tr>'+
+ p.map(x=>'<tr><td>'+esc(x.t)+'</td><td>'+esc(x.side)+'</td><td>'+esc(x.label)+'</td><td>'+f0(x.here)+'</td><td>'+f0(x.there)+'</td><td>'+f0(x.peak)+'</td><td>'+esc(x.heading)+'</td><td>'+esc(x.tilt)+'</td></tr>').join('')+'</table>':'<span class="note">Още няма запазени точки. Използвайте „Запази точка“ при насочване.</span>'}
+function renderReport(){const r=LS.get('af-report',{});RPF.forEach(id=>{if(r[id]!=null)$('#'+id).value=r[id]});if(!$('#rp-date').value)$('#rp-date').value=new Date().toISOString().slice(0,10);renderPoints()}
+RPF.forEach(id=>$('#'+id).addEventListener('input',()=>{const r={};RPF.forEach(k=>r[k]=$('#'+k).value);LS.set('af-report',r)}));
+$('#pts-clear').onclick=()=>{if(confirm('Да изчистя ли запазените точки?')){LS.set('af-points',[]);renderPoints()}};
+$('#rp-csv').onclick=()=>{if(!rec||!rec.length){alert('Няма запис. Включете „Запис“ в лентата и насочвайте.');return}downloadCsv()};
+function reportHtml(){const g=id=>esc($('#'+id).value),P=PLAN,pts=LS.get('af-points',[]),bt=LS.get('af-bt-hist',[])[0];
+ let h='<!doctype html><html lang="'+document.documentElement.lang+'"><head><meta charset="utf-8"><title>Протокол - '+g('rp-client')+'</title><style>body{font:14px/1.5 Arial,sans-serif;margin:24px;color:#111}h1{font-size:20px}h2{font-size:16px;margin-top:22px;border-bottom:1px solid #999}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:4px 8px;text-align:left}.sig{margin-top:50px;display:flex;gap:60px}.sig div{border-top:1px solid #000;padding-top:4px;width:220px}</style></head><body>';
+ h+='<h1>Протокол от насочване на безжична връзка</h1><table><tr><td>Клиент</td><td>'+g('rp-client')+'</td><td>Дата</td><td>'+g('rp-date')+'</td></tr><tr><td>Обект</td><td>'+g('rp-site')+'</td><td>Изпълнител</td><td>'+g('rp-who')+'</td></tr></table>';
+ if(P){h+='<h2>План на връзката</h2><table><tr><th></th><th>A</th><th>B</th></tr><tr><td>Координати</td><td>'+P.A.lat.toFixed(6)+', '+P.A.lon.toFixed(6)+'</td><td>'+P.B.lat.toFixed(6)+', '+P.B.lon.toFixed(6)+'</td></tr><tr><td>Височина на антената</td><td>'+P.mastA+' m</td><td>'+P.mastB+' m</td></tr><tr><td>Азимут по компас</td><td>'+P.magA.toFixed(1)+'°</td><td>'+P.magB.toFixed(1)+'°</td></tr><tr><td>Наклон</td><td>'+tiltTxt(P.tiltA)+'</td><td>'+tiltTxt(-P.tiltA)+'</td></tr><tr><td>Очакван сигнал</td><td>'+f0(P.rxA)+' dBm</td><td>'+f0(P.rxB)+' dBm</td></tr></table><p>Разстояние '+(P.D/1000).toFixed(2)+' km, честота '+P.freq+' MHz, канал '+P.width+' MHz, видимост: '+verdictPlan(P.worstR)[0]+' ('+Math.round(P.worstR*100)+'%).</p>'}
+ if(pts.length){h+='<h2>Измервания</h2><table><tr><th>Време</th><th>Страна</th><th>Име</th><th>Тук, dBm</th><th>Другата, dBm</th><th>Пик</th></tr>'+pts.map(x=>'<tr><td>'+esc(x.t)+'</td><td>'+esc(x.side)+'</td><td>'+esc(x.label)+'</td><td>'+f0(x.here)+'</td><td>'+f0(x.there)+'</td><td>'+f0(x.peak)+'</td></tr>').join('')+'</table>'}
+ if(bt)h+='<h2>Тест на скоростта</h2><p>'+esc(bt.t)+' - '+esc(bt.addr)+' ('+esc(bt.proto)+', '+esc(bt.dir)+'): изпращане '+f1(bt.tx)+' Mbps, приемане '+f1(bt.rx)+' Mbps.</p>';
+ if($('#rp-notes').value.trim())h+='<h2>Бележки</h2><p>'+g('rp-notes').replace(/\n/g,'<br>')+'</p>';
+ h+='<div class="sig"><div>Изпълнител</div><div>Клиент</div></div><p style="color:#777;font-size:12px;margin-top:30px">Създадено с AlignFree. Очакваните стойности са теоретични.</p></body></html>';return h}
+$('#rp-print').onclick=()=>{const w=window.open('','_blank');if(!w){alert('Браузърът блокира новия прозорец. Разрешете го или свалете HTML.');return}w.document.write(reportHtml());w.document.close();setTimeout(()=>w.print(),300)};
+$('#rp-dl').onclick=()=>download('protokol-'+($('#rp-date').value||'')+'.html',reportHtml(),'text/html');
+renderPoints();
+
+/* ---------- инструкции ---------- */
+const GC=[];
+function cmdBox(title,text){GC.push(text);return '<div class="note" style="margin-top:8px"><b>'+esc(title)+'</b> <button class="btn" data-gc="'+(GC.length-1)+'">Копирай</button></div><pre class="cmd">'+esc(text)+'</pre>'}
+function linkCmds(role,pkg,P){const f=P?P.freq:5500,ap=role==='ap',n=ap?'A-ptp':'B-ptp',ip=ap?'192.168.88.2':'192.168.88.3',pw='CHANGE-THIS-PASSWORD';
+ const head='/system identity set name='+n+'\n/interface bridge add name=bridge1\n/interface bridge port add bridge=bridge1 interface=ether1\n';
+ if(pkg==='wifi')return head+'/interface bridge port add bridge=bridge1 interface=wifi1\n/ip address add address='+ip+'/24 interface=bridge1\n/interface wifi set wifi1 configuration.mode='+(ap?'ap':'station-bridge')+' configuration.ssid=PTP-LINK configuration.country=Bulgaria configuration.installation=outdoor channel.band=5ghz-ax channel.frequency='+f+' channel.width=20mhz security.authentication-types=wpa2-psk security.passphrase="'+pw+'" disabled=no\n/ip service enable api\n/user add name=align group=read password=CHANGE-THIS-TOO';
+ return head+'/interface bridge port add bridge=bridge1 interface=wlan1\n/ip address add address='+ip+'/24 interface=bridge1\n/interface wireless security-profiles add name=ptp mode=dynamic-keys authentication-types=wpa2-psk wpa2-pre-shared-key="'+pw+'"\n/interface wireless set wlan1 mode='+(ap?'bridge':'station-bridge')+' ssid=PTP-LINK band=5ghz-a/n/ac frequency='+f+' channel-width=20mhz country=bulgaria installation=outdoor security-profile=ptp wireless-protocol=802.11 '+(ap?'':'scan-list='+f+' ')+'disabled=no\n/ip service enable api\n/user add name=align group=read password=CHANGE-THIS-TOO'}
+function renderNeigh(){const nb=st.neighbors||[],e=$('#su-neigh');if(!e)return;e.innerHTML=nb.length?'Антени по кабела: '+nb.map(n=>esc(n.identity||'MikroTik')+(n.board?' ('+esc(n.board)+')':'')+' · '+esc(n.ip)).join('; '):'Още не виждам антени по кабела.';
+ const bn=$('#bt-neigh');if(bn){const host=cfgCache.router_host,o=nb.filter(n=>n.ip!==host);bn.innerHTML=o.length?'Намерена: '+o.map(n=>'<button class="btn" data-bt="'+esc(n.ip)+'">'+esc(n.identity||'MikroTik')+(n.board?' ('+esc(n.board)+')':'')+' · '+esc(n.ip)+'</button>').join(' '):'';$$('#bt-neigh [data-bt]').forEach(b=>b.onclick=()=>{$('#bt-addr').value=b.dataset.bt})}}
+function renderGuide(){GC.length=0;const P=PLAN,e=$('#guide-body');if(!e)return;
+ let h='';
+ if(!P)h+='<div class="card"><p class="note">Изчислете плана в „План и карта“ - тук ще се покажат вашите числа (азимут по компас, наклон, очакван сигнал), а инструкциите ще ги ползват.</p></div>';
+ else{const v=verdictPlan(P.worstR);h+='<div class="card"><h3>Вашите числа <span class="note">(изчислено '+esc(P.at)+')</span></h3><table><tr><th></th><th>A '+esc(P.nameA)+'</th><th>Б '+esc(P.nameB)+'</th></tr>'+
+ '<tr><td>Координати</td><td>'+P.A.lat.toFixed(6)+', '+P.A.lon.toFixed(6)+'</td><td>'+P.B.lat.toFixed(6)+', '+P.B.lon.toFixed(6)+'</td></tr>'+
+ '<tr><td>Антена над терена</td><td>'+P.mastA.toFixed(1)+' m</td><td>'+P.mastB.toFixed(1)+' m</td></tr><tr><td>Азимут (географски)</td><td>'+P.az.toFixed(1)+'°</td><td>'+P.azb.toFixed(1)+'°</td></tr>'+
+ '<tr><td><b>По компас</b></td><td><b>'+P.magA.toFixed(1)+'°</b></td><td><b>'+P.magB.toFixed(1)+'°</b></td></tr><tr><td>Наклон</td><td>'+tiltTxt(P.tiltA)+'</td><td>'+tiltTxt(-P.tiltA)+'</td></tr>'+
+ '<tr><td>Очакван сигнал</td><td>'+f0(P.rxA)+' dBm</td><td>'+f0(P.rxB)+' dBm</td></tr></table>'+
+ '<p>Разстояние <b>'+(P.D/1000).toFixed(2)+' km</b>. Видимост: <b style="color:'+v[1]+'">'+v[0]+' ('+Math.round(P.worstR*100)+'%)</b>. Най-тясното място е на '+Math.round(P.worstD)+' m от A: свободни са '+Math.round(P.worstR*100)+'% от зоната на Френел (нужни са поне 60%).</p></div>'}
+ const az=s=>P?(s==='a'?P.magA:P.magB).toFixed(1)+'°':'(изчислете плана)',tl=s=>P?tiltTxt(s==='a'?P.tiltA:-P.tiltA):'(изчислете плана)',bw=P?Math.round(Math.min(P.beamA,P.beamB)):'';
+ const sec=(t,b,open)=>'<details'+(open?' open':'')+'><summary>'+t+'</summary><div>'+b+'</div></details>';
+ h+=sec('1. Как работи връзката','<ul><li>Двете антени и предават, и приемат - няма „приемник“ и „предавател“. Едната е <b>точка за достъп</b> (режим <code>ap</code>; в по-старото меню Wireless се казва <code>bridge</code>), другата е <b>клиент</b> (режим <code>station-bridge</code>).</li><li>Точката за достъп обикновено е при източника на интернет. В тази програма това е точка A, а клиентът е Б (можете да ги размените).</li><li>Връзката е прозрачен мост: каквото влезе в кабела от едната страна, излиза от другата. Рутерът и DHCP остават както са си.</li><li>Сигналът (dBm) е отрицателно число - <b>по-близо до нула е по-добре</b>. Всяка страна измерва сигнала, с който чува другата, и за добра връзка трябва да е добър от <b>двете</b> страни.</li></ul>',true);
+ h+=sec('2. Какво ви трябва','<ul><li>Двете антени с PoE адаптерите им и екраниран (FTP) кабел за външна употреба.</li><li>Стабилни стойки или мачти'+(P?'. Лъчът е широк около '+bw+'°, но мачта, която се люлее, пак сваля сигнала':'')+'.</li><li>Компас или телефон с компас, инклинометър (приложение), бинокъл, гаечни ключове, водозащитна лента.</li><li>Два компютъра с тази програма (или един, ако имате достъп до двете антени през връзката) и телефони с мобилен интернет (hotspot) за картата и синхронизацията.</li></ul>');
+ h+=sec('3. Настройване на антените (у дома, на бюрото)','<p>Най-лесно: раздел <b>„Настройка на антената“</b> - програмата настройва антената вместо вас, стъпка по стъпка, без WinBox и без команди, и после мери скоростта между антените. Отдолу е ръчният начин с WinBox - ако го предпочитате.</p>'+
+  '<p>Свържете се с WinBox (бутон Neighbors → по MAC адрес). Потребител <code>admin</code>, паролата е на етикета на антената (Password); ако там няма парола - празно. Обновете RouterOS: System → Packages → Check for updates. По желание започнете на чисто: System → Reset Configuration → No Default Configuration (изтрива всички настройки; после се свързвате само по MAC). После в терминала на WinBox:</p>'+
+  cmdBox('Точка за достъп (A) - меню WiFi',linkCmds('ap','wifi',P))+cmdBox('Клиент (Б) - меню WiFi',linkCmds('client','wifi',P))+
+  '<p class="note">Ако антената е с другото меню (Wireless):</p>'+cmdBox('Точка за достъп (A) - меню Wireless',linkCmds('ap','wireless',P))+cmdBox('Клиент (Б) - меню Wireless',linkCmds('client','wireless',P))+
+  '<ul><li>Паролата на връзката (<code>passphrase</code>) трябва да е <b>еднаква</b> на двете антени. Сменете я и сменете паролата на <code>admin</code>.</li><li>Последните два реда (API и потребител само за четене) не са задължителни, но потребителят само за четене е по-безопасен за програмата.</li><li>IP адресите са пример - сложете различни за двете антени в мрежата си.</li><li>Каналът е 20 MHz, докато насочвате - сигналът е по-стабилен и се отчита по-лесно. Разширявате го накрая (стъпка 9).</li><li>5500 MHz е DFS честота: след включване точката за достъп изчаква 1 минута (на 5600-5650 MHz - 10 минути), преди да излъчва. Това е нормално.</li><li>WiFi е новият пакет (ax модели, интерфейс <code>wifi1</code>), Wireless - старият (<code>wlan1</code>). Програмата чете и двата.</li></ul>'+
+  '<p>Проба: включете двете антени на бюрото, обърнати встрани една от друга. В WiFi → Registration на A трябва да се появи Б.</p>');
+ h+=sec('4. Планиране (раздел „План и карта“)','<ul><li>Поставете точките A и Б на сателитната карта точно върху сградите или мачтите. Координатите можете да вземете и от Google Maps: десен бутон върху мястото → копирайте числата.</li><li>„Антена над терена“ е височината от земята до антената, включително сградата. Например 4-етажен блок (~12 m) + 3 m мачта = 15 m.</li><li>Височината на терена се взима автоматично от модел на релефа (90 m точност). Ако я знаете по-точно, напишете я.</li><li>Ако има гора или сгради по трасето, попълнете „Дървета/сгради“ (например 15 m). Моделът не вижда отделни дървета.</li><li>Проверете „Видимост“. Трябва поне 60% от зоната на Френел да е свободна'+(P?' (за вас това е '+(P.fMid*0.6).toFixed(1)+' m около линията в средата)':'')+'. Ако не е, вдигнете антените.</li><li>С „Изпрати плана на другия компютър“ имате еднакви данни от двете страни.</li></ul>');
+ h+=sec('5. Монтаж','<ul><li>Монтирайте на изчислената височина, на твърда мачта. Двете антени трябва да са завъртени еднакво около оста си (например и двете с кабела надолу). Иначе поляризацията не съвпада и сигналът пада.</li><li>Заземете мачтата. Направете водна примка на кабела (да провисва надолу преди антената), за да не влиза вода в конектора.</li><li>Затегнете стойката само толкова, че антената да не пада, но още да се върти на ръка.</li></ul>');
+ h+=sec('6. Грубо насочване','<ul><li><b>Компас:</b> застанете на 2-3 m от металната мачта и от колата. На A насочете към <b>'+az('a')+'</b>, на Б - към <b>'+az('b')+'</b>. Магнитното отклонение вече е отчетено (WMM2025).</li><li><b>Ориентир:</b> на сателитната карта намерете нещо по линията (сграда, кула, дърво) и прицелете антената към него'+(P?'. На '+(P.D/1000).toFixed(2)+' km другата страна обикновено се вижда с бинокъл':'')+'.</li><li><b>Наклон:</b> на A - '+tl('a')+', на Б - '+tl('b')+'. Ползвайте скалата на стойката или приложение за наклон.</li>'+(P?'<li>Грешката трябва да е под половината от ширината на лъча (≈'+Math.round(bw/2)+'°), иначе антените няма да се „видят“.</li>':'')+'</ul>');
+ h+=sec('7. Компютрите и програмата','<ul><li>Кабел от порт <b>LAN</b> на PoE адаптера към компютъра. IP адреси не се настройват - програмата сама открива антената (както Neighbors в WinBox). Ако види няколко антени, изберете тази, която е с кабел към този компютър.</li><li>Wi-Fi на компютъра - към hotspot-а на телефона (за картата и за синхронизацията между двата компютъра).</li><li>Пуснете MikrotikAlignFree. Ако Windows попита за защитната стена, натиснете „Разреши“. В „Настройки“ включете синхронизацията, изберете страна (A/Б) и <b>една и съща стая</b> на двата компютъра (бутон „Нов код“, после въведете същия код на другия).</li><li>Ако антената иска парола (от етикета или ваша), програмата я иска веднъж най-отгоре в „Насочване“.</li><li>Ако антената е в друга мрежа и не може да се стигне директно, натиснете „Настрой лаптопа автоматично“ и после „Да“ в прозореца на Windows. Кабелната карта получава временен IP; „Върни на автоматичен IP“ го премахва.</li><li>Горе трябва да светят: <b>Антена ✓</b>, <b>Интернет ✓</b>, <b>Отсреща ✓</b>.</li></ul>');
+ h+=sec('8. Фино насочване (раздел „Насочване“)','<ol><li>Насочва само един човек в даден момент. Той натиска <b>„Аз насочвам“</b>, а отсреща излиза надпис да не пипат антената.</li><li>Говорете през програмата (панел „Разговор“): бързи бутони като „Спри - пикът е тук“, текст, а за глас задръжте 🎤 (или клавиша <kbd>Интервал</kbd>), говорете и пуснете. Така телефонът остава само за интернет.</li><li>Започнете от клиента (Б). Точката за достъп стои неподвижно след грубото насочване.</li><li>Включете „Звук“ (клавиш <kbd>M</kbd>): по-висок и по-чест тон означава по-силен сигнал.</li><li><b>Хоризонтално:</b> въртете много бавно, около 1° на стъпка, и изчаквайте 2-3 секунди. Подминете максимума от двете страни и се върнете там, където „dB от пика“ е 0.</li><li><b>Вертикално:</b> същото с наклона.</li><li>Още веднъж хоризонтално и вертикално. След това насочва другата страна (A), а накрая пак малка корекция на Б.</li><li>Цел: около <b>'+(P?f0(P.rxA):'—')+' dBm при A</b> и <b>'+(P?f0(P.rxB):'—')+' dBm при Б</b> (±3-5 dB). Под големите числа програмата показва разликата от очакваното.</li><li><b>Страничен лъч:</b> ако сте с 10-20 dB под очакваното и не можете да го подобрите, вероятно сте хванали страничен лъч. Завъртете по-широко'+(P?' (±'+bw+'°)':'')+' и потърсете по-силен максимум.</li><li>Нулирайте пика („Нулирай пик“, клавиш <kbd>P</kbd>), когато започва другата страна. „Запази точка“ (клавиш <kbd>S</kbd>) записва измерването за протокола.</li><li>Таблица на сигнала: -55 и по-добре - отличен; до -65 - много добър; до -72 - добър; до -78 - приемлив; по-слаб - проверете насочването и препятствията.</li></ol>');
+ h+=sec('9. Проверка и разширяване на канала','<ul><li>При меню WiFi RouterOS не дава Ch0/Ch1 и CCQ. Гледайте сигнала и скоростите (tx/rx rate) - трябва да са стабилни и близки до очакваните.</li><li>Тест на скоростта: раздел „Настройка на антената“, стъпка 6 - първо TCP, после UDP (или в WinBox: Tools → Bandwidth Test). <b>Тестът запълва връзката докрай</b>.</li><li>Разширете канала на 40 или 80 MHz (на двете антени: <code>/interface wifi set wifi1 channel.width=20/40mhz</code> или <code>20/40/80mhz</code>) и проверете пак. По-широкият канал дава по-висока скорост, но сигналът пада с около 3 dB за всяко удвояване на ширината.'+(P&&P.spA?' При вашия сигнал се очаква '+('MCS'+P.spA.mcs)+' (≈'+Math.round(P.spA.real)+' Mbps реално при 20 MHz).':'')+'</li></ul>');
+ h+=sec('10. Финал','<ul><li>Затягайте болтовете постепенно и следете сигнала. При затягане антената често мърда с 1-2°.</li><li>Защитете конекторите от вода, проверете водната примка и заземяването.</li><li>Запазете точка с крайния сигнал от двете страни и направете протокол („Отчет“). Полезно е да го сравните по-късно, ако връзката се влоши.</li><li>Сменете паролата на <code>admin</code>. Ограничете API услугата само до вашата мрежа: <code>/ip service set api address=192.168.88.0/24</code>, или я изключете, ако не ви трябва.</li></ul>');
+ h+=sec('11. Проблеми','<table><tr><th>Проблем</th><th>Какво да проверите</th></tr>'+
+  [['Антените не се виждат','Грубото насочване е над половината от лъча; различни SSID, честота или парола; на DFS честота точката за достъп още чака (1-10 мин).'],
+   ['„Антена: няма връзка“ / време за изчакване','Грешен IP адрес, компютърът не е в същата мрежа, кабелът е в грешния порт на PoE адаптера (трябва LAN). Опитайте избор на антена от списъка, „Търси по IP адреси“ и „Настрой лаптопа автоматично“.'],
+   ['„Отказана връзка“','API услугата е изключена или портът е различен: <code>/ip service print</code>, <code>/ip service enable api</code>.'],
+   ['Иска парола','Въведете потребител и парола най-отгоре в „Насочване“. Паролата е на етикета на антената; потребителят трябва да има права <code>read</code> и <code>api</code>.'],
+   ['Сигналът е с 10+ dB под очакваното','Страничен лъч, препятствие (дървета), различна поляризация или RouterOS намалява мощността заради country=bulgaria.'],
+   ['Сигналът скача','Мачтата се люлее, клони в зоната на Френел или смущения на същия канал - сменете честотата.'],
+   ['Добър сигнал, ниска скорост','Пробвайте друг канал (смущения); проверете дали Ethernet портът е на 1 Gbps.'],
+   ['„Отсреща: чака...“','Различна стая на двата компютъра, едни и същи страни (A/A) или няма интернет от телефона.'],
+   ['Няма звук / микрофон','Браузърът пуска звук и микрофон след разрешение и първо щракване. Проверете силата на звука на компютъра.'],
+   ['Картата или релефът не се зареждат','Нужен е интернет (OpenStreetMap, Open-Meteo). Без релеф видимостта не е надеждна.'],
+   ['Тестът на скоростта: не прие потребителя','Другата антена не е настроена със същата парола - въведете паролата на admin от етикета ѝ в стъпка 6.']].map(r=>'<tr><td>'+r[0]+'</td><td>'+r[1]+'</td></tr>').join('')+'</table>');
+ h+=sec('12. Безопасност','<ul><li>Работата на височина изисква осигуряване и втори човек. Не работете при вятър, дъжд или буря.</li><li>Заземете антената и ползвайте мълниезащита на кабела.</li><li>Не стойте дълго пред излъчваща антена на близко разстояние. Спазвайте местните изисквания за мощност (EIRP) и DFS в 5 GHz.</li><li>Програмата слуша само на този компютър (127.0.0.1). Ползвайте отделен потребител с минимални права на антената.</li></ul>');
+ h+=sec('13. Речник','<ul><li><b>dBm</b> - мощност на сигнала; <b>CCQ</b> - качество на връзката в проценти (при пакет wireless); <b>MCS</b> - модулация (по-висок = по-бърз, но по-чувствителен); <b>Ch0/Ch1</b> - сигнал по двете вериги на антената.</li><li><b>Зона на Френел</b> - елипсоид около линията на видимост; препоръчва се поне 60% от нея да е свободна.</li><li><b>Магнитно отклонение</b> - разликата между географския и магнитния север.</li><li><b>AP / station-bridge</b> - точка за достъп / клиент, който прави мост към кабелната мрежа.</li></ul>');
+ e.innerHTML=h;$$('#guide-body [data-gc]').forEach(b=>b.onclick=()=>copyText(GC[+b.dataset.gc]))}
+
+/* ---------- старт ---------- */
+if(PLAN&&!PLAN.prof)PLAN.prof=[];
+syncRole();
+window.addEventListener('hashchange',()=>showTab(location.hash.slice(1)));
+showTab(location.hash.slice(1)||'aim');loadCfgCache();syncRole();
+poll();
+</script></body></html>
